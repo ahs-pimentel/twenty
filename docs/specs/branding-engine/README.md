@@ -1,6 +1,6 @@
 # o2d-branding-engine — Especificação Funcional, Técnica e Arquitetural
 
-> **Pacote de especificação proprietário da óDois.** Somente documentação: nenhum código funcional, dependência, migration ou arquivo do core foi alterado. Sugestões aqui contidas **não são decisões aprovadas** (pendências no doc 27).
+> **Pacote de especificação proprietário da óDois.** Somente documentação: nenhum código funcional, dependência, migration ou arquivo do core foi alterado. Sugestões aqui contidas **não são decisões aprovadas** (pendências no doc 27; quatro OQs de arquitetura têm decisão de trabalho provisória registrada lá, pendente de ratificação).
 
 ## Visão geral
 
