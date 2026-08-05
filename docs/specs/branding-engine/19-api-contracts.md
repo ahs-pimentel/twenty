@@ -5,7 +5,7 @@
 ## 1. Convenções
 
 - **Superfície pública de runtime**: REST (cacheável por ETag/CDN) sob `/branding/*`.
-- **Superfície administrativa**: os mesmos contratos podem ser expostos via GraphQL (padrão do Twenty) — os shapes abaixo valem para ambos; a decisão REST × GraphQL para a admin UI é OQ-19-1 (default: GraphQL para admin, REST para runtime público).
+- **Superfície administrativa**: os mesmos contratos podem ser expostos via GraphQL (padrão do Twenty) — os shapes abaixo valem para ambos. Decisão de trabalho OQ-19-1 (doc 27): GraphQL para admin, REST para runtime público.
 - AuthN: sessão/JWT padrão do Twenty; AuthZ: matriz do doc 17 §1. Todos os erros seguem `{ error: { code, message, details[] } }`.
 - Toda mutação grava auditoria e emite os eventos do doc 20; `correlationId` aceito por header e propagado.
 

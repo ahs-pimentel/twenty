@@ -1,15 +1,22 @@
 # 27 — Perguntas em Aberto (exigem decisão humana)
 
-> Nenhum item abaixo é decisão tomada. Sugestões marcadas como "default proposto" só valem após aprovação explícita.
+> Itens nas seções "em aberto" não são decisões tomadas. Sugestões marcadas como "default proposto" só valem após aprovação explícita.
 
-## Arquitetura e produto
+## Decisões de trabalho adotadas (2026-08-05 — pendentes de ratificação)
+
+> Quatro OQs de arquitetura foram levadas ao usuário sem resposta; para não bloquear o planejamento, os defaults recomendados foram adotados como **decisão de trabalho provisória**. São reversíveis e devem ser ratificados (ou revertidos) antes do início da fase que cada um afeta.
+
+| ID | Decisão de trabalho | Justificativa resumida | Reversão afeta |
+|---|---|---|---|
+| OQ-08-1 | Inline da distribuição + cache local por hash (doc 08 §4). Telemetria de flash (doc 25) decide na Fase 5 se `index.html` dinâmico por `Host` se justifica | Zero mudança de infra; flash só na 1ª visita a domínio de cliente, mitigado por cache nas seguintes | Fase 5 (bootstrap por domínio) |
+| OQ-12-1 | Endpoint REST separado para branding no login por domínio; patch P9 **não planejado** (fica documentado no doc 22 apenas como opção) | Zero patch em arquivos ativos do auth do core; chamada paralela cacheável por ETag | Fase 5 (doc 12 §7) |
+| OQ-13-1 | Fase 3 inicia com **spike curto** validando admin UI via Twenty App; se não entregar páginas plenas de Configurações, fallback imediato ao patch de rota P7 com componentes em `o2d-branding-front` | Settings tabs custom estão deprecated no manifesto (doc 13 §1); o spike resolve a incerteza antes de comprometer a fase | Fase 3 (admin UI) |
+| OQ-19-1 | GraphQL para a superfície administrativa (padrão do front do Twenty: Apollo, codegen, guards); REST para o runtime público (`/branding/current`, cacheável por ETag/CDN) | Admin segue o padrão do repositório; o endpoint mais quente permanece trivialmente cacheável | Fase 3 (API admin) |
+
+## Arquitetura e produto (em aberto)
 
 | ID | Pergunta | Opções / default proposto |
 |---|---|---|
-| OQ-08-1 | Servir `index.html` com bloco inline **por domínio** (requer servir HTML dinamicamente) ou aceitar inline apenas da distribuição na 1ª visita multi-tenant? | Default: inline da distribuição + cache local (doc 08 §4); reavaliar na Fase 5 |
-| OQ-12-1 | Acrescentar `brandingHash`/`branding` à `PublicWorkspaceDataDTO` (patch P9) ou manter endpoint REST separado? | Default: endpoint separado no MVP; decidir na Fase 5 |
-| OQ-13-1 | Admin UI como Twenty App é viável para páginas de Configurações? (`settingsCustomTabFrontComponentUniversalIdentifier` está deprecated — evidência doc 13 §1) | Validar com spike na Fase 3; fallback: patch P7 (rota) |
-| OQ-19-1 | Superfície admin em GraphQL (padrão do Twenty) ou REST? | Default: GraphQL admin + REST público |
 | OQ-04-1 | Multi-configuração por workspace no MVP (N configs + domínios apontando) ou 1 config por workspace? | Default: modelo de dados suporta N; UI expõe 1 no MVP |
 
 ## Tokens
