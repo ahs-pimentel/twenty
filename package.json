@@ -98,7 +98,8 @@
       "packages/twenty-codex-plugin",
       "packages/twenty-oxlint-rules",
       "packages/twenty-companion",
-      "packages/twenty-claude-skills"
+      "packages/twenty-claude-skills",
+      "packages/o2d-branding-core"
     ]
   },
   "prettier": {

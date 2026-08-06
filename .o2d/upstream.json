@@ -1,0 +1,10 @@
+{
+  "remote": {
+    "name": "upstream",
+    "url": "https://github.com/twentyhq/twenty.git"
+  },
+  "baseCommit": "538b180824dc4c3bbd3b9cb70662a01a69a64ae1",
+  "baseCommitSubject": "feat(dpa): self-serve Data Processing Agreement generator (#22243)",
+  "adapter": "o2d-adapter/538b1808@1",
+  "notes": "Single source of truth for the upstream base of this distribution (docs 21/22). Update baseCommit and regenerate preset.twenty-default + adapter on every homologated sync."
+}

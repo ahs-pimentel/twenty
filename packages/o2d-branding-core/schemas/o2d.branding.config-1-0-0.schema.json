@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "o2d.branding.config/1-0-0"
+    },
+    "basePreset": {
+      "type": "string",
+      "pattern": "^preset\\.[a-z0-9-]+$"
+    },
+    "brand": {
+      "type": "object",
+      "properties": {
+        "productName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "shortName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "productName",
+        "shortName"
+      ],
+      "additionalProperties": false
+    },
+    "tokens": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "brand.primary",
+          "brand.primaryHover",
+          "brand.primaryActive",
+          "brand.onPrimary",
+          "brand.scale.1",
+          "brand.scale.2",
+          "brand.scale.3",
+          "brand.scale.4",
+          "brand.scale.5",
+          "brand.scale.6",
+          "brand.scale.7",
+          "brand.scale.8",
+          "brand.scale.9",
+          "brand.scale.10",
+          "brand.scale.11",
+          "brand.scale.12",
+          "background.primary",
+          "background.secondary",
+          "background.tertiary",
+          "surface.primary",
+          "surface.secondary",
+          "surface.elevated",
+          "text.primary",
+          "text.secondary",
+          "text.muted",
+          "text.inverse",
+          "border.default",
+          "border.strong",
+          "border.focus",
+          "status.success",
+          "status.warning",
+          "status.error",
+          "status.info",
+          "font.family.body",
+          "font.family.heading",
+          "font.size.xs",
+          "font.size.sm",
+          "font.size.md",
+          "font.size.lg",
+          "font.size.xl",
+          "font.weight.regular",
+          "font.weight.medium",
+          "font.weight.semibold",
+          "font.weight.bold",
+          "font.lineHeight",
+          "spacing.unit",
+          "layout.density",
+          "radius.sm",
+          "radius.md",
+          "radius.lg",
+          "radius.xl",
+          "radius.pill",
+          "shadow.sm",
+          "shadow.md",
+          "shadow.lg",
+          "shadow.overlay",
+          "layout.sidebar.width",
+          "layout.sidebar.collapsedWidth",
+          "layout.header.height",
+          "layout.content.maxWidth"
+        ]
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "light": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "dark": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "light",
+              "dark"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "assets": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "favicon",
+          "logoLight",
+          "logoDark",
+          "loginBackground",
+          "emailLogo",
+          "documentLogo"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "assetId",
+          "hash"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "basePreset",
+    "brand",
+    "tokens",
+    "assets"
+  ],
+  "additionalProperties": false
+}
