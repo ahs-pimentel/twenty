@@ -82,6 +82,7 @@ import { MakePublicDomainApplicationIdNotNullSlowInstanceCommand } from 'src/dat
 import { AddServerTriggerSettingsToLogicFunctionFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-16/2-16-instance-command-fast-1782211913427-add-server-trigger-settings-to-logic-function';
 import { CreateDpaAgreementCoreTableFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-17/2-17-instance-command-fast-1801000020000-create-dpa-agreement-core-table';
 import { CreateO2dBrandingTablesFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-17/2-17-instance-command-fast-1801100000000-create-o2d-branding-tables';
+import { AddO2dBrandingVersionSourceConfigFastInstanceCommand } from 'src/database/commands/upgrade-version-command/2-17/2-17-instance-command-fast-1801100000001-add-o2d-branding-version-source-config';
 
 export const INSTANCE_COMMANDS = [
   AddViewFieldGroupIdIndexOnViewFieldFastInstanceCommand,
@@ -166,4 +167,5 @@ export const INSTANCE_COMMANDS = [
   MakePublicDomainApplicationIdNotNullSlowInstanceCommand,
   CreateDpaAgreementCoreTableFastInstanceCommand,
   CreateO2dBrandingTablesFastInstanceCommand,
+  AddO2dBrandingVersionSourceConfigFastInstanceCommand,
 ];
