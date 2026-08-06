@@ -28,6 +28,8 @@ import { CloudflareModule } from 'src/engine/core-modules/cloudflare/cloudflare.
 import { CodeInterpreterModule } from 'src/engine/core-modules/code-interpreter/code-interpreter.module';
 import { DnsManagerModule } from 'src/engine/core-modules/dns-manager/dns-manager.module';
 import { DpaModule } from 'src/engine/core-modules/dpa/dpa.module';
+// O2D-PATCH: module registration
+import { O2dBrandingModule } from 'src/engine/core-modules/o2d-branding/o2d-branding.module';
 import { EmailModule } from 'src/engine/core-modules/email/email.module';
 import { EmailingDomainModule } from 'src/engine/core-modules/emailing-domain/emailing-domain.module';
 import { EmailingModule } from 'src/modules/emailing/emailing.module';
@@ -160,6 +162,7 @@ import { FileModule } from './file/file.module';
     SearchModule,
     ApiKeyModule,
     DpaModule,
+    O2dBrandingModule,
     PageLayoutModule,
     ImpersonationModule,
     TrashCleanupModule,
