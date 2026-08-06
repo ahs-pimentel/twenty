@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+// O2D-PATCH: branding validation job wiring.
+import { O2dBrandingValidationJob } from 'src/engine/core-modules/o2d-branding/jobs/o2d-branding-validation.job';
+import { O2dBrandingModule } from 'src/engine/core-modules/o2d-branding/o2d-branding.module';
+
 import { TypeORMModule } from 'src/database/typeorm/typeorm.module';
 import { AuthModule } from 'src/engine/core-modules/auth/auth.module';
 import { BillingModule } from 'src/engine/core-modules/billing/billing.module';
@@ -89,6 +93,8 @@ import { WorkflowModule } from 'src/modules/workflow/workflow.module';
     EmailingModule,
     PreInstalledAppsModule,
     BillingReminderModule,
+    // O2D-PATCH: worker-side registration of the branding validation job.
+    O2dBrandingModule,
   ],
   providers: [
     BillingReminderCronJob,
@@ -103,6 +109,8 @@ import { WorkflowModule } from 'src/modules/workflow/workflow.module';
     UpdateWorkspaceMemberEmailJob,
     GenerateSdkClientJob,
     BackfillApplicationInstallationJob,
+    // O2D-PATCH: async branding draft validation (doc 19).
+    O2dBrandingValidationJob,
   ],
 })
 export class JobsModule {

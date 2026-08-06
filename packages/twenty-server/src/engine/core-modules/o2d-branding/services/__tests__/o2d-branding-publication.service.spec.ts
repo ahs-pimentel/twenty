@@ -5,6 +5,7 @@ import { UnprocessableEntityException } from '@nestjs/common';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
 import { O2dBrandingVersionStatus } from 'src/engine/core-modules/o2d-branding/enums/o2d-branding.enums';
 import { O2dBrandingAuditService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-audit.service';
+import { O2dBrandingCacheService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-cache.service';
 import { O2dBrandingPublicationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-publication.service';
 
 const buildValidDraft = () => ({
@@ -34,12 +35,15 @@ describe('O2dBrandingPublicationService', () => {
     ),
   };
 
+  const cacheService = { invalidatePublishedArtifact: jest.fn() };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         O2dBrandingPublicationService,
         O2dBrandingAuditService,
         { provide: getDataSourceToken(), useValue: dataSource },
+        { provide: O2dBrandingCacheService, useValue: cacheService },
       ],
     }).compile();
 
@@ -78,6 +82,10 @@ describe('O2dBrandingPublicationService', () => {
     expect(version.status).toBe(O2dBrandingVersionStatus.PUBLISHED);
     expect(version.hash).toMatch(/^[a-f0-9]{64}$/);
     expect(version.artifact?.cssLight['--t-color-blue9']).toBe('#7c3aed');
+    // Redis invalidation happens after the transaction commits (doc 07 §5).
+    expect(cacheService.invalidatePublishedArtifact).toHaveBeenCalledWith(
+      'ws-1',
+    );
 
     // Pointer swap + audit happen inside the same transaction.
     expect(entityManager.update).toHaveBeenCalledWith(

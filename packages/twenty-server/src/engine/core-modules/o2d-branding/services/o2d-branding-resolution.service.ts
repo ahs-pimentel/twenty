@@ -11,15 +11,17 @@ import {
   O2dBrandingAssetStatus,
   O2dBrandingConfigurationStatus,
 } from 'src/engine/core-modules/o2d-branding/enums/o2d-branding.enums';
+import { O2dBrandingCacheService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-cache.service';
 import {
   O2dBrandingDistributionService,
   type O2dBrandingResolvedArtifact,
   type O2dBrandingResolvedAsset,
 } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-distribution.service';
 
-// Workspace → published artifact resolution (docs 07 §3, 12). Domain-based
-// resolution and the Redis cache layer arrive in phase 5; every failure
-// path falls back to the distribution artifact — never a broken theme.
+// Workspace → published artifact resolution (docs 07 §3, 12) behind the
+// Redis cache of doc 07 §5. Domain-based resolution arrives in phase 5;
+// every failure path falls back to the distribution artifact — never a
+// broken theme.
 @Injectable()
 export class O2dBrandingResolutionService {
   private readonly logger = new Logger(O2dBrandingResolutionService.name);
@@ -38,62 +40,34 @@ export class O2dBrandingResolutionService {
     @InjectRepository(O2dBrandingAssetEntity)
     private readonly assetRepository: Repository<O2dBrandingAssetEntity>,
     private readonly distributionService: O2dBrandingDistributionService,
+    private readonly cacheService: O2dBrandingCacheService,
   ) {}
 
   async resolveByWorkspace(
     workspaceId: string,
   ): Promise<O2dBrandingResolvedArtifact> {
     try {
-      const configuration = await this.configurationRepository.findOne({
-        where: {
+      // Redis first (doc 07 §5) — publish/rollback invalidate the entry,
+      // so a hit is always the current published artifact.
+      const cachedArtifact =
+        await this.cacheService.getPublishedArtifact(workspaceId);
+
+      if (cachedArtifact !== undefined) {
+        return cachedArtifact;
+      }
+
+      const resolvedArtifact = await this.resolveFromDatabase(workspaceId);
+
+      // Only workspace-published artifacts are cached — fallbacks would
+      // pin the distribution identity for 24h past the next publication.
+      if (resolvedArtifact.meta.source === 'workspace') {
+        await this.cacheService.setPublishedArtifact(
           workspaceId,
-          status: O2dBrandingConfigurationStatus.ACTIVE,
-        },
-        order: { createdAt: 'ASC' },
-      });
-
-      if (
-        configuration === null ||
-        configuration.publishedVersionId === null ||
-        configuration.publishedVersionId === undefined
-      ) {
-        return this.distributionService.getDistributionArtifact();
+          resolvedArtifact,
+        );
       }
 
-      const version = await this.versionRepository.findOneBy({
-        id: configuration.publishedVersionId,
-      });
-
-      if (version === null || version.artifact === null) {
-        return this.distributionService.getDistributionArtifact();
-      }
-
-      const artifact = version.artifact;
-
-      if (artifact === undefined) {
-        return this.distributionService.getDistributionArtifact();
-      }
-
-      return {
-        hash: version.hash,
-        cssLight: artifact.cssLight,
-        cssDark: artifact.cssDark,
-        assets: await this.resolveAssetUrls(version.assetManifest ?? {}),
-        brand: {
-          productName:
-            (artifact.meta as { productName?: string }).productName ??
-            this.distributionService.getDistributionArtifact().brand
-              .productName,
-          shortName:
-            (artifact.meta as { shortName?: string }).shortName ??
-            this.distributionService.getDistributionArtifact().brand.shortName,
-        },
-        meta: {
-          adapterVersion: version.adapterVersion,
-          source: 'workspace',
-          publishedAt: version.createdAt.toISOString(),
-        },
-      };
+      return resolvedArtifact;
     } catch (error) {
       // Resolution must never break the client — degrade to the
       // distribution identity and report (doc 06 §4 behaviors).
@@ -103,6 +77,60 @@ export class O2dBrandingResolutionService {
 
       return this.distributionService.getDistributionArtifact();
     }
+  }
+
+  private async resolveFromDatabase(
+    workspaceId: string,
+  ): Promise<O2dBrandingResolvedArtifact> {
+    const configuration = await this.configurationRepository.findOne({
+      where: {
+        workspaceId,
+        status: O2dBrandingConfigurationStatus.ACTIVE,
+      },
+      order: { createdAt: 'ASC' },
+    });
+
+    if (
+      configuration === null ||
+      configuration.publishedVersionId === null ||
+      configuration.publishedVersionId === undefined
+    ) {
+      return this.distributionService.getDistributionArtifact();
+    }
+
+    const version = await this.versionRepository.findOneBy({
+      id: configuration.publishedVersionId,
+    });
+
+    if (version === null || version.artifact === null) {
+      return this.distributionService.getDistributionArtifact();
+    }
+
+    const artifact = version.artifact;
+
+    if (artifact === undefined) {
+      return this.distributionService.getDistributionArtifact();
+    }
+
+    return {
+      hash: version.hash,
+      cssLight: artifact.cssLight,
+      cssDark: artifact.cssDark,
+      assets: await this.resolveAssetUrls(version.assetManifest ?? {}),
+      brand: {
+        productName:
+          (artifact.meta as { productName?: string }).productName ??
+          this.distributionService.getDistributionArtifact().brand.productName,
+        shortName:
+          (artifact.meta as { shortName?: string }).shortName ??
+          this.distributionService.getDistributionArtifact().brand.shortName,
+      },
+      meta: {
+        adapterVersion: version.adapterVersion,
+        source: 'workspace',
+        publishedAt: version.createdAt.toISOString(),
+      },
+    };
   }
 
   // The published manifest pins assets by id+hash (doc 11 §5) — the URL is

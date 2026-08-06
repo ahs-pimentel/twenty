@@ -19,9 +19,11 @@ import { O2dBrandingAssetEntity } from 'src/engine/core-modules/o2d-branding/ent
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
 import { O2dBrandingValidationResultDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-validation-result.dto';
+import { O2dBrandingValidationRunDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-validation-run.dto';
 import { O2dBrandingAssetService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-asset.service';
 import { O2dBrandingConfigurationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-configuration.service';
 import { O2dBrandingPublicationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-publication.service';
+import { O2dBrandingValidationRunService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-validation-run.service';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { streamToBuffer } from 'src/utils/stream-to-buffer';
@@ -40,6 +42,7 @@ export class O2dBrandingResolver {
     private readonly configurationService: O2dBrandingConfigurationService,
     private readonly publicationService: O2dBrandingPublicationService,
     private readonly assetService: O2dBrandingAssetService,
+    private readonly validationRunService: O2dBrandingValidationRunService,
   ) {}
 
   @Query(() => [O2dBrandingConfigurationEntity])
@@ -119,6 +122,26 @@ export class O2dBrandingResolver {
       id,
       changelog,
     );
+  }
+
+  // Async validation (doc 19): answers immediately with the run
+  // descriptor; the worker fills in the result, polled via the query below.
+  @Mutation(() => O2dBrandingValidationRunDTO)
+  async startO2dBrandingDraftValidation(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthUser() user: UserEntity,
+    @Args('id', { type: () => UUIDScalarType }) id: string,
+  ): Promise<O2dBrandingValidationRunDTO> {
+    return this.validationRunService.start(workspace.id, user.id, id);
+  }
+
+  @Query(() => O2dBrandingValidationRunDTO, { nullable: true })
+  async o2dBrandingValidationRun(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @Args('configurationId', { type: () => UUIDScalarType })
+    configurationId: string,
+  ): Promise<O2dBrandingValidationRunDTO | null> {
+    return this.validationRunService.getRun(workspace.id, configurationId);
   }
 
   @Query(() => [O2dBrandingAssetEntity])
