@@ -237,9 +237,8 @@ export class O2dBrandingAssetService {
       );
     }
 
-    const maxBytes = O2D_BRANDING_ASSET_RULES.maxBytesByFormat[
-      declaredExtension
-    ];
+    const maxBytes =
+      O2D_BRANDING_ASSET_RULES.maxBytesByFormat[declaredExtension];
 
     if (input.file.length === 0 || input.file.length > maxBytes) {
       throw new UnprocessableEntityException(

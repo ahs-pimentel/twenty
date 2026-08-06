@@ -43,7 +43,10 @@ export const sanitizeO2dBrandingSvg = (
       (entry.element as Element | null)?.tagName === 'BODY',
   );
 
-  if (purify.removed.length - wrapperBodyRemovals.length > 0 || wrapperBodyRemovals.length > 1) {
+  if (
+    purify.removed.length - wrapperBodyRemovals.length > 0 ||
+    wrapperBodyRemovals.length > 1
+  ) {
     return {
       accepted: false,
       reason: 'svg contains disallowed elements or attributes',

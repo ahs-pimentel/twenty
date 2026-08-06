@@ -67,9 +67,9 @@ describe('sanitizeO2dBrandingSvg', () => {
   });
 
   it('rejects content that is not an svg document at all', () => {
-    expect(sanitizeO2dBrandingSvg('<html><body>hi</body></html>').accepted).toBe(
-      false,
-    );
+    expect(
+      sanitizeO2dBrandingSvg('<html><body>hi</body></html>').accepted,
+    ).toBe(false);
     expect(sanitizeO2dBrandingSvg('plain text').accepted).toBe(false);
   });
 });

@@ -108,9 +108,7 @@ describe('O2dBrandingAssetService', () => {
 
       expect(asset.status).toBe(O2dBrandingAssetStatus.VALID);
       expect(asset.hash).toMatch(/^[a-f0-9]{64}$/);
-      expect(asset.url).toBe(
-        `/branding/asset/${asset.id}/${asset.hash}.png`,
-      );
+      expect(asset.url).toBe(`/branding/asset/${asset.id}/${asset.hash}.png`);
 
       const writtenFile = fileStorageService.writeFile.mock.calls[0][0];
 
