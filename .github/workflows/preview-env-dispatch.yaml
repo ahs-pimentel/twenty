@@ -17,7 +17,10 @@ concurrency:
 
 jobs:
   trigger-preview:
+    # O2D-PATCH: fork guard — the dispatcher app vars/secrets only exist on
+    # twentyhq/twenty; on forks this job would fail on every front/server PR.
     if: |
+      github.repository == 'twentyhq/twenty' && (
       (github.event.action == 'labeled' && github.event.label.name == 'preview-app') ||
       (
         (
@@ -29,7 +32,7 @@ jobs:
           github.event.action == 'synchronize' ||
           github.event.action == 'reopened'
         )
-      )
+      ) )
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
