@@ -51,7 +51,9 @@ jobs:
   congratulate:
     timeout-minutes: 3
     runs-on: ubuntu-latest
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    # O2D-PATCH: fork guard — the congratulation comment consistently fails on
+    # forks and is upstream-community cosmetics; skip it here.
+    if: github.repository == 'twentyhq/twenty' && github.event.action == 'closed' && github.event.pull_request.merged == true
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Install dependencies
