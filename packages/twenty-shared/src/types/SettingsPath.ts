@@ -25,6 +25,8 @@ export enum SettingsPath {
   WorkspaceMembersPage = 'members',
   WorkspaceMemberPage = 'members/:workspaceMemberId',
   General = 'general',
+  // O2D-PATCH: P7 — branding admin page of the óDois distribution
+  O2dBranding = 'branding',
   Subdomain = 'general/subdomain',
   CustomDomain = 'general/custom-domain',
   WorkspaceEmail = 'email',

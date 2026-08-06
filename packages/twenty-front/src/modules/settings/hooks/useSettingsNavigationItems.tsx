@@ -30,6 +30,7 @@ import {
   IconMessage,
   IconPlug,
   IconServer,
+  IconPaint,
   IconSettings,
   IconSparkles,
   IconUserCircle,
@@ -120,6 +121,13 @@ const useSettingsNavigationItems = (): SettingsNavigationSection[] => {
           label: t`General`,
           path: SettingsPath.General,
           Icon: IconSettings,
+          isHidden: !permissionMap[PermissionFlagType.WORKSPACE],
+        },
+        // O2D-PATCH: P7
+        {
+          label: t`Visual identity`,
+          path: SettingsPath.O2dBranding,
+          Icon: IconPaint,
           isHidden: !permissionMap[PermissionFlagType.WORKSPACE],
         },
         {

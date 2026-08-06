@@ -114,6 +114,15 @@ const SettingsGeneral = lazy(() =>
   })),
 );
 
+// O2D-PATCH: P7
+const SettingsO2dBranding = lazy(() =>
+  import('~/pages/settings/o2d-branding/SettingsO2dBranding').then(
+    (module) => ({
+      default: module.SettingsO2dBranding,
+    }),
+  ),
+);
+
 const SettingsLegalDpa = lazy(() =>
   import('~/pages/settings/legal/SettingsLegalDpa').then((module) => ({
     default: module.SettingsLegalDpa,
@@ -656,6 +665,11 @@ export const SettingsRoutes = ({ isAdminPageEnabled }: SettingsRoutesProps) => (
         }
       >
         <Route path={SettingsPath.General} element={<SettingsGeneral />} />
+        {/* O2D-PATCH: P7 */}
+        <Route
+          path={SettingsPath.O2dBranding}
+          element={<SettingsO2dBranding />}
+        />
         <Route
           path={SettingsPath.WorkspaceEmail}
           element={<SettingsWorkspaceEmail />}
