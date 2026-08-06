@@ -31,7 +31,11 @@ export {
 } from './normalize/normalizeBrandingConfig';
 export { validateBrandingConfig } from './validate/validateBrandingConfig';
 export { parseThemeCssVariables } from './css/parseThemeCssVariables';
-export { getPreset, TWENTY_DEFAULT_PRESET } from './presets/presetRegistry';
+export {
+  getPreset,
+  ODOIS_PRESET,
+  TWENTY_DEFAULT_PRESET,
+} from './presets/presetRegistry';
 export {
   TOKEN_CSS_TARGETS,
   SCALE_CSS_TARGETS,

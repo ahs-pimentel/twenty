@@ -43465,7 +43465,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"o2d-branding-core@workspace:packages/o2d-branding-core":
+"o2d-branding-core@workspace:*, o2d-branding-core@workspace:packages/o2d-branding-core":
   version: 0.0.0-use.local
   resolution: "o2d-branding-core@workspace:packages/o2d-branding-core"
   dependencies:
@@ -53223,6 +53223,7 @@ __metadata:
     nest-commander: "npm:^3.19.1"
     node-ical: "npm:^0.21.0"
     nodemailer: "npm:^9.0.1"
+    o2d-branding-core: "workspace:*"
     openapi-types: "npm:12.1.3"
     openid-client: "npm:^5.7.0"
     otplib: "npm:^12.0.1"

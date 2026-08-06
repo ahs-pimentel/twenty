@@ -36,7 +36,10 @@ split (doc 10).
 ```bash
 npx nx test o2d-branding-core        # jest suite
 npx nx typecheck o2d-branding-core
+npx nx build o2d-branding-core       # dist (CJS + d.ts) consumed by twenty-server
 npx tsx scripts/generateTwentyDefaultPreset.ts   # after an upstream sync
+npx tsx scripts/generateOdoisPreset.ts           # after brand config changes
+npx tsx scripts/generateDistributionArtifact.ts  # regenerates front artifact + index.html block
 npx tsx scripts/generateJsonSchema.ts            # after schema changes
 ```
 
