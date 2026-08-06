@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateBrandScale follows the reference lightness curve in both modes 1`] = `
+[
+  "#fdfdfd",
+  "#f7faf8",
+  "#edf4ef",
+  "#e1ede4",
+  "#d2e4d7",
+  "#bfdac6",
+  "#a7cab2",
+  "#87b495",
+  "#0f6b3c",
+  "#217948",
+  "#2e764b",
+  "#1b3825",
+]
+`;
+
+exports[`generateBrandScale follows the reference lightness curve in both modes 2`] = `
+[
+  "#0f1611",
+  "#121a14",
+  "#162d1e",
+  "#1a3b26",
+  "#21472f",
+  "#2a5339",
+  "#336144",
+  "#3c714f",
+  "#0f6b3c",
+  "#468f61",
+  "#95c3a3",
+  "#d6e7da",
+]
+`;

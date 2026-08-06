@@ -1,0 +1,11 @@
+{
+  "name": "o2d-branding-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/o2d-branding-core/src",
+  "projectType": "library",
+  "tags": ["scope:shared"],
+  "targets": {
+    "test": {},
+    "typecheck": {}
+  }
+}

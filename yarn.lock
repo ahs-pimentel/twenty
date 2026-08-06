@@ -43465,6 +43465,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"o2d-branding-core@workspace:packages/o2d-branding-core":
+  version: 0.0.0-use.local
+  resolution: "o2d-branding-core@workspace:packages/o2d-branding-core"
+  dependencies:
+    "@swc/core": "npm:^1.15.11"
+    "@swc/jest": "npm:^0.2.39"
+    "@types/jest": "npm:^30.0.0"
+    "@types/node": "npm:^22.5.5"
+    "@typescript/native-preview": "npm:^7.0.0-dev.20260116.1"
+    jest: "npm:29.7.0"
+    tsx: "npm:^4.19.3"
+    typescript: "npm:^5.9.3"
+    zod: "npm:^4.1.11"
+  languageName: unknown
+  linkType: soft
+
 "oauth-sign@npm:0.9.0":
   version: 0.9.0
   resolution: "oauth-sign@npm:0.9.0"

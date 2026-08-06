@@ -1,0 +1,336 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`canonical hash produces the frozen golden digest for a known payload 1`] = `"93a23971a914e5eacbf0a8d25154cda309c3c1c72fbb9914d47c60f3cb681588"`;
+
+exports[`token catalog v1 freeze never changes without a schema version bump 1`] = `
+{
+  "background.primary": {
+    "modes": "perMode",
+    "tier": "required",
+    "type": "color",
+  },
+  "background.secondary": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "background.tertiary": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "border.default": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "border.focus": {
+    "modes": "perMode",
+    "tier": "derived",
+    "type": "color",
+  },
+  "border.strong": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "brand.onPrimary": {
+    "modes": "perMode",
+    "tier": "required",
+    "type": "color",
+  },
+  "brand.primary": {
+    "modes": "perMode",
+    "tier": "required",
+    "type": "color",
+  },
+  "brand.primaryActive": {
+    "modes": "perMode",
+    "tier": "derived",
+    "type": "color",
+  },
+  "brand.primaryHover": {
+    "modes": "perMode",
+    "tier": "derived",
+    "type": "color",
+  },
+  "brand.scale.1": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.10": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.11": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.12": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.2": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.3": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.4": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.5": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.6": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.7": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.8": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "brand.scale.9": {
+    "modes": "perMode",
+    "tier": "calculated",
+    "type": "color",
+  },
+  "font.family.body": {
+    "modes": "shared",
+    "tier": "restricted",
+    "type": "fontFamily",
+  },
+  "font.family.heading": {
+    "modes": "shared",
+    "tier": "restricted",
+    "type": "fontFamily",
+  },
+  "font.lineHeight": {
+    "modes": "shared",
+    "tier": "optional",
+    "type": "number",
+  },
+  "font.size.lg": {
+    "max": "2.5rem",
+    "min": "0.9rem",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "font.size.md": {
+    "max": "2rem",
+    "min": "0.75rem",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "font.size.sm": {
+    "max": "1.75rem",
+    "min": "0.75rem",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "font.size.xl": {
+    "max": "3rem",
+    "min": "1rem",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "font.size.xs": {
+    "max": "1.5rem",
+    "min": "0.75rem",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "font.weight.bold": {
+    "modes": "shared",
+    "tier": "optional",
+    "type": "fontWeight",
+  },
+  "font.weight.medium": {
+    "modes": "shared",
+    "tier": "optional",
+    "type": "fontWeight",
+  },
+  "font.weight.regular": {
+    "modes": "shared",
+    "tier": "optional",
+    "type": "fontWeight",
+  },
+  "font.weight.semibold": {
+    "modes": "shared",
+    "tier": "optional",
+    "type": "fontWeight",
+  },
+  "layout.content.maxWidth": {
+    "max": "2560px",
+    "min": "640px",
+    "modes": "shared",
+    "tier": "restricted",
+    "type": "dimension",
+  },
+  "layout.density": {
+    "modes": "shared",
+    "tier": "restricted",
+    "type": "number",
+  },
+  "layout.header.height": {
+    "max": "96px",
+    "min": "32px",
+    "modes": "shared",
+    "tier": "restricted",
+    "type": "dimension",
+  },
+  "layout.sidebar.collapsedWidth": {
+    "max": "120px",
+    "min": "40px",
+    "modes": "shared",
+    "tier": "restricted",
+    "type": "dimension",
+  },
+  "layout.sidebar.width": {
+    "max": "480px",
+    "min": "180px",
+    "modes": "shared",
+    "tier": "restricted",
+    "type": "dimension",
+  },
+  "radius.lg": {
+    "max": "32px",
+    "min": "0px",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "radius.md": {
+    "max": "24px",
+    "min": "0px",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "radius.pill": {
+    "max": "999px",
+    "min": "0px",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "radius.sm": {
+    "max": "12px",
+    "min": "0px",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "radius.xl": {
+    "max": "48px",
+    "min": "0px",
+    "modes": "shared",
+    "tier": "optional",
+    "type": "dimension",
+  },
+  "shadow.lg": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "shadow",
+  },
+  "shadow.md": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "shadow",
+  },
+  "shadow.overlay": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "shadow",
+  },
+  "shadow.sm": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "shadow",
+  },
+  "spacing.unit": {
+    "modes": "shared",
+    "tier": "readonly",
+    "type": "number",
+  },
+  "status.error": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "status.info": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "status.success": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "status.warning": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "surface.elevated": {
+    "modes": "perMode",
+    "tier": "derived",
+    "type": "color",
+  },
+  "surface.primary": {
+    "modes": "perMode",
+    "tier": "required",
+    "type": "color",
+  },
+  "surface.secondary": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "text.inverse": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "text.muted": {
+    "modes": "perMode",
+    "tier": "optional",
+    "type": "color",
+  },
+  "text.primary": {
+    "modes": "perMode",
+    "tier": "required",
+    "type": "color",
+  },
+  "text.secondary": {
+    "modes": "perMode",
+    "tier": "required",
+    "type": "color",
+  },
+}
+`;
