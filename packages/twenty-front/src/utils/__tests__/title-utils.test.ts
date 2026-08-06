@@ -2,6 +2,9 @@ import { i18n } from '@lingui/core';
 import { messages as enMessages } from '~/locales/generated/en';
 import { getPageTitleFromPath } from '~/utils/title-utils';
 
+// O2D-PATCH: P3
+import { getO2dProductName } from '@/o2d-branding/utils/getO2dProductName';
+
 i18n.load('en', enMessages);
 i18n.activate('en');
 
@@ -49,7 +52,8 @@ describe('title-utils', () => {
     expect(getPageTitleFromPath('/settings/general')).toBe(
       'General - Settings',
     );
-    expect(getPageTitleFromPath('/')).toBe('Twenty');
-    expect(getPageTitleFromPath('/random')).toBe('Twenty');
+    // O2D-PATCH: P3 — fallback is the distribution product name
+    expect(getPageTitleFromPath('/')).toBe(getO2dProductName());
+    expect(getPageTitleFromPath('/random')).toBe(getO2dProductName());
   });
 });

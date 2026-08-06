@@ -28,3 +28,13 @@ echo "$CONFIG_BLOCK" | sed -i.bak '
   }
 ' build/index.html
 rm -f build/index.html.bak
+
+# BEGIN: O2D-PATCH: P2 — optional boot-time override of the distribution
+# product name inside the delimited O2D Branding block (full block content is
+# generated at build time by generateDistributionArtifact.ts).
+if [ -n "$O2D_PRODUCT_NAME" ]; then
+  echo "Injecting O2D product name into index.html..."
+  sed -i.bak "s/document\.title = \"[^\"]*\";/document.title = \"$O2D_PRODUCT_NAME\";/" build/index.html
+  rm -f build/index.html.bak
+fi
+# END: O2D-PATCH: P2

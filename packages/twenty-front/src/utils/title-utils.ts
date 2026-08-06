@@ -1,6 +1,9 @@
 import { t } from '@lingui/core/macro';
 import { AppBasePath, AppPath, SettingsPath } from 'twenty-shared/types';
 
+// O2D-PATCH: P3
+import { getO2dProductName } from '@/o2d-branding/utils/getO2dProductName';
+
 enum SettingsPathPrefixes {
   Accounts = `${AppBasePath.Settings}/${SettingsPath.Accounts}`,
   Experience = `${AppBasePath.Settings}/${SettingsPath.Experience}`,
@@ -59,6 +62,7 @@ export const getPageTitleFromPath = (pathname: string): string => {
     case SettingsPathPrefixes.Community:
       return t`Community - Settings`;
     default:
-      return 'Twenty';
+      // O2D-PATCH: P3 — distribution product name instead of 'Twenty'
+      return getO2dProductName();
   }
 };
