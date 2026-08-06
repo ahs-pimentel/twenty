@@ -67,7 +67,7 @@ export class O2dBrandingConfigurationEntity {
   @Column({ type: 'jsonb', nullable: true })
   draftConfig?: O2DBrandingConfig | null;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   @Column({ type: 'timestamptz', nullable: true })
   draftUpdatedAt?: Date | null;
 

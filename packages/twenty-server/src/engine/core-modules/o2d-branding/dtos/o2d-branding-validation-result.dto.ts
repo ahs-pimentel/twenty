@@ -4,7 +4,7 @@ import GraphQLJSON from 'graphql-type-json';
 
 @ObjectType('O2dBrandingValidationResult')
 export class O2dBrandingValidationResultDTO {
-  @Field()
+  @Field(() => String)
   status: 'valid' | 'failed';
 
   // Issues keep the per-token shape from doc 19 §3 (rule, tokenPath, mode,

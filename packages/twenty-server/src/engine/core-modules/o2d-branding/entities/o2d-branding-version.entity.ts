@@ -118,7 +118,7 @@ export class O2dBrandingVersionEntity {
   })
   basedOnVersion?: Relation<O2dBrandingVersionEntity> | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
   changelog?: string | null;
 
