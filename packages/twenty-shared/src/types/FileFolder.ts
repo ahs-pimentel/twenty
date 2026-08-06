@@ -17,4 +17,6 @@ export enum FileFolder {
   AppTarball = 'app-tarball',
   GeneratedSdkClient = 'generated-sdk-client',
   Dpa = 'dpa',
+  // O2D-PATCH: P8 — sanitized branding binaries (docs/specs/branding-engine/11).
+  BrandingAsset = 'branding-asset',
 }

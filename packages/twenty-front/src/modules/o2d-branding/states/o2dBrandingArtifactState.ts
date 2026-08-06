@@ -1,12 +1,20 @@
 import { createAtomState } from '@/ui/utilities/state/jotai/utils/createAtomState';
 import { O2D_DISTRIBUTION_BRANDING } from '@/o2d-branding/constants/O2dDistributionBranding';
 
+export type O2dBrandingRuntimeAsset = {
+  url: string;
+  hash: string;
+  format: string;
+};
+
 // Runtime shape shared by the embedded artifact, the local cache and the
-// published artifact served by GET /branding/current (doc 08 §6).
+// published artifact served by GET /branding/current (doc 08 §6). Assets
+// are optional — the embedded distribution artifact carries none.
 export type O2dBrandingRuntimeArtifact = {
   hash: string;
   css: { light: Record<string, string>; dark: Record<string, string> };
   brand: { productName: string; shortName: string };
+  assets?: Record<string, O2dBrandingRuntimeAsset>;
 };
 
 export type O2dBrandingStatus = 'embedded' | 'cached' | 'fresh' | 'fallback';

@@ -5,6 +5,7 @@ import {
   o2dBrandingStatusState,
   type O2dBrandingStatus,
 } from '@/o2d-branding/states/o2dBrandingArtifactState';
+import { REACT_APP_SERVER_BASE_URL } from '~/config';
 
 type UseO2dBrandingResult = {
   productName: string;
@@ -26,6 +27,8 @@ export const useO2dBranding = (): UseO2dBrandingResult => {
     shortName: o2dBrandingArtifact.brand.shortName,
     hash: o2dBrandingArtifact.hash,
     status: o2dBrandingStatus,
-    assets: { favicon: getO2dFaviconUrl() },
+    assets: {
+      favicon: getO2dFaviconUrl(REACT_APP_SERVER_BASE_URL, o2dBrandingArtifact),
+    },
   };
 };

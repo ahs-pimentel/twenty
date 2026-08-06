@@ -66,6 +66,10 @@ export const fileFolderConfigs: Record<FileFolder, FileFolderConfig> = {
   [FileFolder.Dpa]: {
     ignoreExpirationToken: false,
   },
+  // O2D-PATCH: P8 — published branding assets are public pre-auth (login page).
+  [FileFolder.BrandingAsset]: {
+    ignoreExpirationToken: true,
+  },
 };
 
 export type AllowedFolders = KebabCase<keyof typeof FileFolder>;

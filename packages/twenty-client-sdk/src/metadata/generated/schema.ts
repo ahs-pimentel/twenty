@@ -3001,7 +3001,7 @@ export type WorkspaceMigrationActionType = 'delete' | 'create' | 'update'
 
 export type AnalyticsType = 'PAGEVIEW' | 'TRACK'
 
-export type FileFolder = 'ProfilePicture' | 'WorkspaceLogo' | 'Attachment' | 'PersonPicture' | 'CorePicture' | 'File' | 'AgentChat' | 'BuiltLogicFunction' | 'BuiltFrontComponent' | 'PublicAsset' | 'Source' | 'FilesField' | 'Dependencies' | 'Workflow' | 'EmailAttachment' | 'AppTarball' | 'GeneratedSdkClient' | 'Dpa'
+export type FileFolder = 'ProfilePicture' | 'WorkspaceLogo' | 'Attachment' | 'PersonPicture' | 'CorePicture' | 'File' | 'AgentChat' | 'BuiltLogicFunction' | 'BuiltFrontComponent' | 'PublicAsset' | 'Source' | 'FilesField' | 'Dependencies' | 'Workflow' | 'EmailAttachment' | 'AppTarball' | 'GeneratedSdkClient' | 'Dpa' | 'BrandingAsset'
 
 export interface Subscription {
     onEventSubscription?: EventSubscription
@@ -9347,5 +9347,6 @@ export const enumFileFolder = {
    EmailAttachment: 'EmailAttachment' as const,
    AppTarball: 'AppTarball' as const,
    GeneratedSdkClient: 'GeneratedSdkClient' as const,
-   Dpa: 'Dpa' as const
+   Dpa: 'Dpa' as const,
+   BrandingAsset: 'BrandingAsset' as const
 }

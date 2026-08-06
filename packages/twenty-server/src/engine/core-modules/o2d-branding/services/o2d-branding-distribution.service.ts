@@ -6,10 +6,17 @@ import {
   ODOIS_PRESET,
 } from 'o2d-branding-core';
 
+export type O2dBrandingResolvedAsset = {
+  url: string;
+  hash: string;
+  format: string;
+};
+
 export type O2dBrandingResolvedArtifact = {
   hash: string;
   cssLight: Record<string, string>;
   cssDark: Record<string, string>;
+  assets: Record<string, O2dBrandingResolvedAsset>;
   brand: { productName: string; shortName: string };
   meta: {
     adapterVersion: string;
@@ -52,6 +59,9 @@ export class O2dBrandingDistributionService {
       hash: resolved.meta.hash,
       cssLight: overrides.light,
       cssDark: overrides.dark,
+      // Distribution-bundled binaries (default favicon/logo files) ship with
+      // the front build itself — the artifact carries no uploaded assets.
+      assets: {},
       brand: {
         productName: ODOIS_PRESET.brand.productName,
         shortName: ODOIS_PRESET.brand.shortName,

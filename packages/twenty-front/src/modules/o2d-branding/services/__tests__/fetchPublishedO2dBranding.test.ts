@@ -38,8 +38,50 @@ describe('fetchPublishedO2dBranding', () => {
           dark: { '--t-color-blue': 'mock-dark-value' },
         },
         brand: { productName: 'Cliente X', shortName: 'X' },
+        assets: {},
       },
     });
+  });
+
+  it('keeps well-formed asset entries and drops malformed ones', async () => {
+    const fetchFn = jest.fn().mockResolvedValue(
+      buildResponse(200, {
+        hash: 'abc',
+        tokens: { cssLight: {}, cssDark: {} },
+        brand: { productName: 'Cliente X', shortName: 'X' },
+        assets: {
+          favicon: {
+            url: '/branding/asset/asset-1/hash-1.svg',
+            hash: 'hash-1',
+            format: 'svg',
+          },
+          logoLight: { url: 42 },
+        },
+      }),
+    );
+
+    const result = await fetchPublishedO2dBranding(
+      'https://server',
+      'h',
+      fetchFn,
+    );
+
+    expect(result).toMatchObject({
+      kind: 'fresh',
+      artifact: {
+        assets: {
+          favicon: {
+            url: '/branding/asset/asset-1/hash-1.svg',
+            hash: 'hash-1',
+            format: 'svg',
+          },
+        },
+      },
+    });
+
+    if (result.kind === 'fresh') {
+      expect(result.artifact.assets).not.toHaveProperty('logoLight');
+    }
   });
 
   it('returns not-modified on 304', async () => {

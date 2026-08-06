@@ -86,6 +86,46 @@ export const PUBLISH_O2D_BRANDING_CONFIGURATION = gql`
   }
 `;
 
+export const GET_O2D_BRANDING_ASSETS = gql`
+  query GetO2dBrandingAssets($configurationId: UUID!) {
+    o2dBrandingAssets(configurationId: $configurationId) {
+      id
+      type
+      name
+      format
+      sizeBytes
+      hash
+      url
+      status
+      createdAt
+    }
+  }
+`;
+
+export const UPLOAD_O2D_BRANDING_ASSET = gql`
+  mutation UploadO2dBrandingAsset(
+    $configurationId: UUID!
+    $slot: String!
+    $file: Upload!
+  ) {
+    uploadO2dBrandingAsset(
+      configurationId: $configurationId
+      slot: $slot
+      file: $file
+    ) {
+      id
+      type
+      name
+      format
+      sizeBytes
+      hash
+      url
+      status
+      createdAt
+    }
+  }
+`;
+
 export const ROLLBACK_O2D_BRANDING_CONFIGURATION = gql`
   mutation RollbackO2dBrandingConfiguration(
     $id: UUID!
