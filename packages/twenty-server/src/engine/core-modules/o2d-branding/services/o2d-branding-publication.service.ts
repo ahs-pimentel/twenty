@@ -35,7 +35,7 @@ export type O2dBrandingValidationOutcome = {
 @Injectable()
 export class O2dBrandingPublicationService {
   constructor(
-    @InjectDataSource('core')
+    @InjectDataSource()
     private readonly dataSource: DataSource,
     private readonly auditService: O2dBrandingAuditService,
   ) {}

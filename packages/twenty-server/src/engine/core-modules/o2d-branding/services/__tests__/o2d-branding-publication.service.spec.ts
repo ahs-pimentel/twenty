@@ -39,7 +39,7 @@ describe('O2dBrandingPublicationService', () => {
       providers: [
         O2dBrandingPublicationService,
         O2dBrandingAuditService,
-        { provide: getDataSourceToken('core'), useValue: dataSource },
+        { provide: getDataSourceToken(), useValue: dataSource },
       ],
     }).compile();
 
