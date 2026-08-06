@@ -10,13 +10,16 @@ import {
   currentAdapter,
   UPSTREAM_BASE_COMMIT,
   validateBrandingConfig,
+  type ResolvedAssetMap,
   type ValidationIssue,
 } from 'o2d-branding-core';
 
+import { O2dBrandingAssetEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-asset.entity';
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
 import { O2dBrandingPublicationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-publication.entity';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
 import {
+  O2dBrandingAssetStatus,
   O2dBrandingPublicationStatus,
   O2dBrandingVersionStatus,
 } from 'src/engine/core-modules/o2d-branding/enums/o2d-branding.enums';
@@ -129,6 +132,12 @@ export class O2dBrandingPublicationService {
       }
 
       const overrides = currentAdapter.mapThemeTokens(resolved.tokens);
+
+      await this.assertManifestAssetsAreValid(
+        entityManager,
+        configuration.id,
+        resolved.assets,
+      );
 
       const previousVersion =
         configuration.publishedVersionId !== null &&
@@ -347,6 +356,30 @@ export class O2dBrandingPublicationService {
     }
 
     return configuration;
+  }
+
+  // The manifest published to every client must only reference ingested,
+  // VALID assets of this configuration (doc 11 §5) — a dangling assetId or
+  // hash mismatch blocks publication instead of shipping a broken slot.
+  private async assertManifestAssetsAreValid(
+    entityManager: EntityManager,
+    configurationId: string,
+    manifest: ResolvedAssetMap,
+  ): Promise<void> {
+    for (const [slot, reference] of Object.entries(manifest)) {
+      const asset = await entityManager.findOneBy(O2dBrandingAssetEntity, {
+        id: reference.assetId,
+        configurationId,
+        hash: reference.hash,
+        status: O2dBrandingAssetStatus.VALID,
+      });
+
+      if (asset === null) {
+        throw new UnprocessableEntityException(
+          `asset for slot "${slot}" is missing, rejected or has a stale hash — re-upload it before publishing`,
+        );
+      }
+    }
   }
 
   private async nextVersionNumber(

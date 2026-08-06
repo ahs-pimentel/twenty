@@ -1,8 +1,10 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
+import { O2dBrandingAssetEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-asset.entity';
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
+import { O2dBrandingAssetStatus } from 'src/engine/core-modules/o2d-branding/enums/o2d-branding.enums';
 import { O2dBrandingDistributionService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-distribution.service';
 import { O2dBrandingResolutionService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-resolution.service';
 
@@ -10,6 +12,7 @@ describe('O2dBrandingResolutionService', () => {
   let service: O2dBrandingResolutionService;
   const configurationRepository = { findOne: jest.fn() };
   const versionRepository = { findOneBy: jest.fn() };
+  const assetRepository = { findBy: jest.fn().mockResolvedValue([]) };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,6 +26,10 @@ describe('O2dBrandingResolutionService', () => {
         {
           provide: getRepositoryToken(O2dBrandingVersionEntity),
           useValue: versionRepository,
+        },
+        {
+          provide: getRepositoryToken(O2dBrandingAssetEntity),
+          useValue: assetRepository,
         },
       ],
     }).compile();
@@ -67,6 +74,59 @@ describe('O2dBrandingResolutionService', () => {
     expect(artifact.hash).toBe('abc123');
     expect(artifact.brand.productName).toBe('Cliente X');
     expect(artifact.cssLight['--t-color-blue']).toBe('#123456');
+  });
+
+  it('resolves manifest asset references to public urls, dropping stale ones', async () => {
+    configurationRepository.findOne.mockResolvedValue({
+      id: 'cfg-1',
+      publishedVersionId: 'v-2',
+    });
+    versionRepository.findOneBy.mockResolvedValue({
+      id: 'v-2',
+      hash: 'abc123',
+      adapterVersion: 'o2d-adapter/538b1808@1',
+      createdAt: new Date('2026-08-06T00:00:00Z'),
+      assetManifest: {
+        favicon: { assetId: 'asset-1', hash: 'hash-1' },
+        logoLight: { assetId: 'asset-2', hash: 'stale-hash' },
+      },
+      artifact: {
+        cssLight: {},
+        cssDark: {},
+        meta: {
+          adapterVersion: 'o2d-adapter/538b1808@1',
+          hash: 'abc123',
+          productName: 'Cliente X',
+          shortName: 'X',
+        },
+      },
+    });
+    assetRepository.findBy.mockResolvedValue([
+      {
+        id: 'asset-1',
+        hash: 'hash-1',
+        format: 'svg',
+        url: '/branding/asset/asset-1/hash-1.svg',
+        status: O2dBrandingAssetStatus.VALID,
+      },
+      {
+        id: 'asset-2',
+        hash: 'current-hash',
+        format: 'png',
+        url: '/branding/asset/asset-2/current-hash.png',
+        status: O2dBrandingAssetStatus.VALID,
+      },
+    ]);
+
+    const artifact = await service.resolveByWorkspace('ws-1');
+
+    expect(artifact.assets).toEqual({
+      favicon: {
+        url: '/branding/asset/asset-1/hash-1.svg',
+        hash: 'hash-1',
+        format: 'svg',
+      },
+    });
   });
 
   it('degrades to the distribution artifact on repository errors', async () => {

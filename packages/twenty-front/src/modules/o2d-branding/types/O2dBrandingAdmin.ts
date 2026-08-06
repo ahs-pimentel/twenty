@@ -42,6 +42,18 @@ export type O2dBrandingAdminVersion = {
   createdAt: string;
 };
 
+export type O2dBrandingAdminAsset = {
+  id: string;
+  type: string;
+  name: string;
+  format: string;
+  sizeBytes: number;
+  hash: string;
+  url: string | null;
+  status: 'PROCESSING' | 'VALID' | 'REJECTED' | 'ARCHIVED';
+  createdAt: string;
+};
+
 export type O2dBrandingAdminValidationIssue = {
   rule: string;
   severity: 'error' | 'warning';

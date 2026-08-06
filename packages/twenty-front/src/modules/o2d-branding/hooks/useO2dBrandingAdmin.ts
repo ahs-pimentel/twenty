@@ -3,14 +3,17 @@ import { useMutation, useQuery } from '@apollo/client/react';
 import { useApolloCoreClient } from '@/object-metadata/hooks/useApolloCoreClient';
 import {
   CREATE_O2D_BRANDING_CONFIGURATION,
+  GET_O2D_BRANDING_ASSETS,
   GET_O2D_BRANDING_CONFIGURATIONS,
   GET_O2D_BRANDING_VERSIONS,
   PUBLISH_O2D_BRANDING_CONFIGURATION,
   ROLLBACK_O2D_BRANDING_CONFIGURATION,
   UPDATE_O2D_BRANDING_DRAFT,
+  UPLOAD_O2D_BRANDING_ASSET,
   VALIDATE_O2D_BRANDING_DRAFT,
 } from '@/o2d-branding/graphql/o2dBrandingAdminOperations';
 import {
+  type O2dBrandingAdminAsset,
   type O2dBrandingAdminConfiguration,
   type O2dBrandingAdminValidationResult,
   type O2dBrandingAdminVersion,
@@ -60,6 +63,18 @@ export const useO2dBrandingAdmin = () => {
     updateO2dBrandingDraft: O2dBrandingAdminConfiguration;
   }>(UPDATE_O2D_BRANDING_DRAFT, { client: apolloCoreClient });
 
+  const { data: assetsData, refetch: refetchAssets } = useQuery<{
+    o2dBrandingAssets: O2dBrandingAdminAsset[];
+  }>(GET_O2D_BRANDING_ASSETS, {
+    client: apolloCoreClient,
+    variables: { configurationId: configuration?.id },
+    skip: configuration === undefined,
+  });
+
+  const [uploadAsset, { loading: isUploadingAsset }] = useMutation<{
+    uploadO2dBrandingAsset: O2dBrandingAdminAsset;
+  }>(UPLOAD_O2D_BRANDING_ASSET, { client: apolloCoreClient });
+
   const [validateDraft, { loading: isValidating }] = useMutation<{
     validateO2dBrandingDraft: O2dBrandingAdminValidationResult;
   }>(VALIDATE_O2D_BRANDING_DRAFT, { client: apolloCoreClient });
@@ -78,19 +93,24 @@ export const useO2dBrandingAdmin = () => {
     configuration,
     configurationsLoading,
     versions: versionsData?.o2dBrandingVersions ?? [],
+    assets: assetsData?.o2dBrandingAssets ?? [],
     refetchAll,
+    refetchAssets,
     createConfiguration,
     updateDraft,
+    uploadAsset,
     validateDraft,
     publishConfiguration,
     rollbackConfiguration,
     isBusy:
       isCreating ||
       isSavingDraft ||
+      isUploadingAsset ||
       isValidating ||
       isPublishing ||
       isRollingBack,
     isSavingDraft,
+    isUploadingAsset,
     isValidating,
     isPublishing,
   };

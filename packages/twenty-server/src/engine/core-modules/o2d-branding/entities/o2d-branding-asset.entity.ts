@@ -1,5 +1,6 @@
-import { registerEnumType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
+import { IDField } from '@ptc-org/nestjs-query-graphql';
 import {
   Column,
   CreateDateColumn,
@@ -12,6 +13,7 @@ import {
 } from 'typeorm';
 import { type O2DAssetSlot } from 'o2d-branding-core';
 
+import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
 import { O2dBrandingAssetStatus } from 'src/engine/core-modules/o2d-branding/enums/o2d-branding.enums';
 
@@ -27,10 +29,13 @@ registerEnumType(O2dBrandingAssetStatus, { name: 'O2dBrandingAssetStatus' });
   'type',
   'hash',
 ])
+@ObjectType('O2dBrandingAsset')
 export class O2dBrandingAssetEntity {
+  @IDField(() => UUIDScalarType)
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Field(() => UUIDScalarType)
   @Column({ nullable: false, type: 'uuid' })
   configurationId: string;
 
@@ -41,36 +46,46 @@ export class O2dBrandingAssetEntity {
   })
   configuration: Relation<O2dBrandingConfigurationEntity>;
 
+  @Field(() => String)
   @Column({ type: 'varchar' })
   type: O2DAssetSlot;
 
+  @Field()
   @Column()
   name: string;
 
+  @Field()
   @Column()
   format: string;
 
+  @Field(() => Int)
   @Column({ type: 'int' })
   sizeBytes: number;
 
+  @Field(() => Int, { nullable: true })
   @Column({ type: 'int', nullable: true })
   width?: number | null;
 
+  @Field(() => Int, { nullable: true })
   @Column({ type: 'int', nullable: true })
   height?: number | null;
 
+  @Field()
   @Column()
   hash: string;
 
   @Column()
   storageKey: string;
 
+  @Field(() => String, { nullable: true })
   @Column({ type: 'varchar', nullable: true })
   url?: string | null;
 
+  @Field(() => Int)
   @Column({ type: 'int', default: 1 })
   version: number;
 
+  @Field(() => O2dBrandingAssetStatus)
   @Column({
     type: 'enum',
     enum: Object.values(O2dBrandingAssetStatus),
@@ -78,12 +93,14 @@ export class O2dBrandingAssetEntity {
   })
   status: O2dBrandingAssetStatus;
 
+  @Field(() => String, { nullable: true })
   @Column({ type: 'text', nullable: true })
   rejectionReason?: string | null;
 
   @Column({ type: 'uuid', nullable: true })
   createdBy?: string | null;
 
+  @Field()
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 }

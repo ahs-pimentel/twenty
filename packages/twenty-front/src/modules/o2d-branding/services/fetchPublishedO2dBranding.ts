@@ -1,9 +1,35 @@
-import { type O2dBrandingRuntimeArtifact } from '@/o2d-branding/states/o2dBrandingArtifactState';
+import {
+  type O2dBrandingRuntimeArtifact,
+  type O2dBrandingRuntimeAsset,
+} from '@/o2d-branding/states/o2dBrandingArtifactState';
 
 type PublishedBrandingResponse = {
   hash: string;
   tokens: { cssLight: Record<string, string>; cssDark: Record<string, string> };
   brand: { productName: string; shortName: string };
+  assets?: Record<string, O2dBrandingRuntimeAsset>;
+};
+
+const pickWellFormedAssets = (
+  assets: PublishedBrandingResponse['assets'],
+): Record<string, O2dBrandingRuntimeAsset> => {
+  const wellFormedAssets: Record<string, O2dBrandingRuntimeAsset> = {};
+
+  for (const [slot, asset] of Object.entries(assets ?? {})) {
+    if (
+      typeof asset?.url === 'string' &&
+      typeof asset?.hash === 'string' &&
+      typeof asset?.format === 'string'
+    ) {
+      wellFormedAssets[slot] = {
+        url: asset.url,
+        hash: asset.hash,
+        format: asset.format,
+      };
+    }
+  }
+
+  return wellFormedAssets;
 };
 
 export type FetchPublishedO2dBrandingResult =
@@ -51,6 +77,7 @@ export const fetchPublishedO2dBranding = async (
           productName: payload.brand?.productName ?? '',
           shortName: payload.brand?.shortName ?? '',
         },
+        assets: pickWellFormedAssets(payload.assets),
       },
     };
   } catch {

@@ -1892,6 +1892,7 @@ export enum FileFolder {
   AgentChat = 'AgentChat',
   AppTarball = 'AppTarball',
   Attachment = 'Attachment',
+  BrandingAsset = 'BrandingAsset',
   BuiltFrontComponent = 'BuiltFrontComponent',
   BuiltLogicFunction = 'BuiltLogicFunction',
   CorePicture = 'CorePicture',

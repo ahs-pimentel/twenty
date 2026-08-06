@@ -1,14 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { type ResolvedAssetMap } from 'o2d-branding-core';
 
+import { O2dBrandingAssetEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-asset.entity';
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
-import { O2dBrandingConfigurationStatus } from 'src/engine/core-modules/o2d-branding/enums/o2d-branding.enums';
+import {
+  O2dBrandingAssetStatus,
+  O2dBrandingConfigurationStatus,
+} from 'src/engine/core-modules/o2d-branding/enums/o2d-branding.enums';
 import {
   O2dBrandingDistributionService,
   type O2dBrandingResolvedArtifact,
+  type O2dBrandingResolvedAsset,
 } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-distribution.service';
 
 // Workspace → published artifact resolution (docs 07 §3, 12). Domain-based
@@ -28,6 +34,9 @@ export class O2dBrandingResolutionService {
     // eslint-disable-next-line twenty/prefer-workspace-scoped-repository
     @InjectRepository(O2dBrandingVersionEntity)
     private readonly versionRepository: Repository<O2dBrandingVersionEntity>,
+    // eslint-disable-next-line twenty/prefer-workspace-scoped-repository
+    @InjectRepository(O2dBrandingAssetEntity)
+    private readonly assetRepository: Repository<O2dBrandingAssetEntity>,
     private readonly distributionService: O2dBrandingDistributionService,
   ) {}
 
@@ -69,6 +78,7 @@ export class O2dBrandingResolutionService {
         hash: version.hash,
         cssLight: artifact.cssLight,
         cssDark: artifact.cssDark,
+        assets: await this.resolveAssetUrls(version.assetManifest ?? {}),
         brand: {
           productName:
             (artifact.meta as { productName?: string }).productName ??
@@ -93,5 +103,47 @@ export class O2dBrandingResolutionService {
 
       return this.distributionService.getDistributionArtifact();
     }
+  }
+
+  // The published manifest pins assets by id+hash (doc 11 §5) — the URL is
+  // rebuilt from the registry row so a missing/invalidated asset silently
+  // drops out of the map instead of serving a dead link.
+  private async resolveAssetUrls(
+    manifest: ResolvedAssetMap,
+  ): Promise<Record<string, O2dBrandingResolvedAsset>> {
+    const references = Object.entries(manifest);
+
+    if (references.length === 0) {
+      return {};
+    }
+
+    const assets = await this.assetRepository.findBy({
+      id: In(references.map(([, reference]) => reference.assetId)),
+      status: O2dBrandingAssetStatus.VALID,
+    });
+
+    const resolvedAssets: Record<string, O2dBrandingResolvedAsset> = {};
+
+    for (const [slot, reference] of references) {
+      const asset = assets.find(
+        (candidate) =>
+          candidate.id === reference.assetId &&
+          candidate.hash === reference.hash,
+      );
+
+      if (
+        asset !== undefined &&
+        asset.url !== null &&
+        asset.url !== undefined
+      ) {
+        resolvedAssets[slot] = {
+          url: asset.url,
+          hash: asset.hash,
+          format: asset.format,
+        };
+      }
+    }
+
+    return resolvedAssets;
   }
 }

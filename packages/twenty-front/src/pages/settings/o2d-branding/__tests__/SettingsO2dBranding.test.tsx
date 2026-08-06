@@ -48,14 +48,18 @@ jest.mock(
 const baseAdminState = {
   configurationsLoading: false,
   versions: [],
+  assets: [],
   refetchAll: jest.fn(),
+  refetchAssets: jest.fn(),
   createConfiguration: jest.fn(),
   updateDraft: jest.fn(),
+  uploadAsset: jest.fn(),
   validateDraft: jest.fn(),
   publishConfiguration: jest.fn(),
   rollbackConfiguration: jest.fn(),
   isBusy: false,
   isSavingDraft: false,
+  isUploadingAsset: false,
   isValidating: false,
   isPublishing: false,
 };
@@ -89,7 +93,7 @@ describe('SettingsO2dBranding', () => {
           basePreset: 'preset.odois',
           brand: { productName: 'óDois CRM', shortName: 'óDois' },
           tokens: { 'brand.primary': getO2dDefaultBrandColor() },
-          assets: {},
+          assets: { favicon: { assetId: 'asset-1', hash: 'cafebabe12345678' } },
         },
       },
       versions: [
@@ -122,6 +126,10 @@ describe('SettingsO2dBranding', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Validate')).toBeInTheDocument();
     expect(screen.getByText('Publish')).toBeInTheDocument();
+    // Asset slots: favicon shows its pinned hash prefix, logos are unset.
+    expect(screen.getByText(/Favicon · cafebabe/)).toBeInTheDocument();
+    expect(screen.getAllByText(/not set/)).toHaveLength(2);
+    expect(screen.getAllByText('Upload')).toHaveLength(3);
     // Only the non-published version offers restore.
     expect(screen.getAllByText('Restore')).toHaveLength(1);
     expect(screen.getByTestId('save-and-cancel')).toBeInTheDocument();

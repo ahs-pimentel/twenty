@@ -16,6 +16,7 @@ export type Scalars = {
   DateTime: { input: string; output: string; }
   JSON: { input: any; output: any; }
   UUID: { input: any; output: any; }
+  Upload: { input: any; output: any; }
 };
 
 export enum CalendarChannelVisibility {
@@ -221,6 +222,7 @@ export type Mutation = {
   updateWorkflowRunStep: WorkflowAction;
   updateWorkflowVersionPositions: Scalars['Boolean']['output'];
   updateWorkflowVersionStep: WorkflowAction;
+  uploadO2dBrandingAsset: O2dBrandingAsset;
   validateO2dBrandingDraft: O2dBrandingValidationResult;
 };
 
@@ -351,9 +353,41 @@ export type MutationUpdateWorkflowVersionStepArgs = {
 };
 
 
+export type MutationUploadO2dBrandingAssetArgs = {
+  configurationId: Scalars['UUID']['input'];
+  file: Scalars['Upload']['input'];
+  slot: Scalars['String']['input'];
+};
+
+
 export type MutationValidateO2dBrandingDraftArgs = {
   id: Scalars['UUID']['input'];
 };
+
+export type O2dBrandingAsset = {
+  __typename?: 'O2dBrandingAsset';
+  configurationId: Scalars['UUID']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  format: Scalars['String']['output'];
+  hash: Scalars['String']['output'];
+  height?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  rejectionReason?: Maybe<Scalars['String']['output']>;
+  sizeBytes: Scalars['Int']['output'];
+  status: O2dBrandingAssetStatus;
+  type: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+  version: Scalars['Int']['output'];
+  width?: Maybe<Scalars['Int']['output']>;
+};
+
+export enum O2dBrandingAssetStatus {
+  ARCHIVED = 'ARCHIVED',
+  PROCESSING = 'PROCESSING',
+  REJECTED = 'REJECTED',
+  VALID = 'VALID'
+}
 
 export type O2dBrandingConfiguration = {
   __typename?: 'O2dBrandingConfiguration';
@@ -435,6 +469,7 @@ export type Query = {
   /** @deprecated Use getTimelineThreadsFromObjectRecord instead */
   getTimelineThreadsFromPersonId: TimelineThreadsWithTotal;
   isMaintenanceModeBannerDismissed: Scalars['Boolean']['output'];
+  o2dBrandingAssets: Array<O2dBrandingAsset>;
   o2dBrandingConfiguration: O2dBrandingConfiguration;
   o2dBrandingConfigurations: Array<O2dBrandingConfiguration>;
   o2dBrandingVersions: Array<O2dBrandingVersion>;
@@ -498,6 +533,11 @@ export type QueryGetTimelineThreadsFromPersonIdArgs = {
   page: Scalars['Int']['input'];
   pageSize: Scalars['Int']['input'];
   personId: Scalars['UUID']['input'];
+};
+
+
+export type QueryO2dBrandingAssetsArgs = {
+  configurationId: Scalars['UUID']['input'];
 };
 
 

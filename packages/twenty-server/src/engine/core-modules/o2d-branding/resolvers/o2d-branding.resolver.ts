@@ -2,6 +2,8 @@ import { UseFilters, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query } from '@nestjs/graphql';
 
 import GraphQLJSON from 'graphql-type-json';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+import type { FileUpload } from 'graphql-upload/processRequest.mjs';
 import { PermissionFlagType } from 'twenty-shared/constants';
 import { type O2DBrandingConfig } from 'o2d-branding-core';
 
@@ -13,13 +15,16 @@ import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorat
 import { PermissionsGraphqlApiExceptionFilter } from 'src/engine/metadata-modules/permissions/utils/permissions-graphql-api-exception.filter';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
+import { O2dBrandingAssetEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-asset.entity';
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
 import { O2dBrandingValidationResultDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-validation-result.dto';
+import { O2dBrandingAssetService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-asset.service';
 import { O2dBrandingConfigurationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-configuration.service';
 import { O2dBrandingPublicationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-publication.service';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
+import { streamToBuffer } from 'src/utils/stream-to-buffer';
 
 // Admin surface (working decision OQ-19-1: GraphQL for admin, REST for the
 // public runtime). MVP RBAC reuses the WORKSPACE settings flag (doc 17 §1);
@@ -34,6 +39,7 @@ export class O2dBrandingResolver {
   constructor(
     private readonly configurationService: O2dBrandingConfigurationService,
     private readonly publicationService: O2dBrandingPublicationService,
+    private readonly assetService: O2dBrandingAssetService,
   ) {}
 
   @Query(() => [O2dBrandingConfigurationEntity])
@@ -113,6 +119,39 @@ export class O2dBrandingResolver {
       id,
       changelog,
     );
+  }
+
+  @Query(() => [O2dBrandingAssetEntity])
+  async o2dBrandingAssets(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @Args('configurationId', { type: () => UUIDScalarType })
+    configurationId: string,
+  ): Promise<O2dBrandingAssetEntity[]> {
+    return this.assetService.listAssets(workspace.id, configurationId);
+  }
+
+  @Mutation(() => O2dBrandingAssetEntity)
+  async uploadO2dBrandingAsset(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthUser() user: UserEntity,
+    @Args('configurationId', { type: () => UUIDScalarType })
+    configurationId: string,
+    @Args('slot') slot: string,
+    @Args({ name: 'file', type: () => GraphQLUpload })
+    { createReadStream, filename }: FileUpload,
+  ): Promise<O2dBrandingAssetEntity> {
+    // The pipeline enforces its own per-format ceilings (doc 11 §2); 5 MB
+    // caps the raw stream before any inspection happens.
+    const file = await streamToBuffer(createReadStream(), 5 * 1024 * 1024);
+
+    return this.assetService.uploadAsset({
+      workspaceId: workspace.id,
+      userId: user.id,
+      configurationId,
+      slot,
+      filename,
+      file,
+    });
   }
 
   @Mutation(() => O2dBrandingVersionEntity)

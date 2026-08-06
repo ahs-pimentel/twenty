@@ -1,5 +1,5 @@
 import { t } from '@lingui/core/macro';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { styled } from '@linaria/react';
 import { Button } from 'twenty-ui/input';
 import { ColorSample } from 'twenty-ui/data-display';
@@ -22,6 +22,18 @@ import {
 } from '@/o2d-branding/types/O2dBrandingAdmin';
 
 const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{6})$/;
+
+// Uploadable slots surfaced in the MVP admin UI (doc 11 §2); the accept
+// list mirrors the server-side per-slot format allowlist.
+const UPLOADABLE_ASSET_SLOTS: {
+  slot: string;
+  label: string;
+  accept: string;
+}[] = [
+  { slot: 'favicon', label: 'Favicon', accept: '.ico,.png,.svg' },
+  { slot: 'logoLight', label: 'Logo (light)', accept: '.svg,.png,.webp' },
+  { slot: 'logoDark', label: 'Logo (dark)', accept: '.svg,.png,.webp' },
+];
 
 const StyledColorRow = styled.div`
   align-items: center;
@@ -53,6 +65,20 @@ const StyledActionsRow = styled.div`
   margin-top: ${themeCssVariables.spacing[3]};
 `;
 
+const StyledAssetRow = styled.div`
+  align-items: center;
+  color: ${themeCssVariables.font.color.primary};
+  display: flex;
+  font-size: ${themeCssVariables.font.size.sm};
+  gap: ${themeCssVariables.spacing[3]};
+  justify-content: space-between;
+  padding: ${themeCssVariables.spacing[2]} 0;
+`;
+
+const StyledHiddenFileInput = styled.input`
+  display: none;
+`;
+
 export const SettingsO2dBranding = () => {
   const { enqueueSuccessSnackBar, enqueueErrorSnackBar } = useSnackBar();
   const {
@@ -60,8 +86,10 @@ export const SettingsO2dBranding = () => {
     configurationsLoading,
     versions,
     refetchAll,
+    refetchAssets,
     createConfiguration,
     updateDraft,
+    uploadAsset,
     validateDraft,
     publishConfiguration,
     rollbackConfiguration,
@@ -76,6 +104,8 @@ export const SettingsO2dBranding = () => {
   const [brandColor, setBrandColor] = useState('');
   const [rollbackReason, setRollbackReason] = useState('');
   const [issues, setIssues] = useState<O2dBrandingAdminValidationIssue[]>([]);
+  const [activeUploadSlot, setActiveUploadSlot] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (configuration?.draftConfig) {
@@ -151,6 +181,67 @@ export const SettingsO2dBranding = () => {
       enqueueSuccessSnackBar({ message: t`Draft saved` });
     } catch (error) {
       enqueueErrorSnackBar({ message: (error as Error).message });
+    }
+  };
+
+  const handlePickAssetFile = (slot: string, accept: string) => {
+    if (fileInputRef.current === null) {
+      return;
+    }
+
+    setActiveUploadSlot(slot);
+    fileInputRef.current.accept = accept;
+    fileInputRef.current.value = '';
+    fileInputRef.current.click();
+  };
+
+  // Upload runs the server ingestion pipeline; on success the returned
+  // id+hash pair is pinned into the draft so the next publish snapshots it
+  // (doc 11 §5 — manifests reference exact hashes).
+  const handleUploadAssetFile = async (file: File | undefined) => {
+    if (
+      file === undefined ||
+      activeUploadSlot === null ||
+      configuration?.draftConfig === undefined ||
+      configuration?.draftConfig === null
+    ) {
+      return;
+    }
+
+    try {
+      const { data } = await uploadAsset({
+        variables: {
+          configurationId: configuration.id,
+          slot: activeUploadSlot,
+          file,
+        },
+      });
+      const asset = data?.uploadO2dBrandingAsset;
+
+      if (asset === undefined || asset.url === null) {
+        throw new Error(t`Upload failed`);
+      }
+
+      await updateDraft({
+        variables: {
+          id: configuration.id,
+          draftConfig: {
+            ...configuration.draftConfig,
+            assets: {
+              ...configuration.draftConfig.assets,
+              [activeUploadSlot]: { assetId: asset.id, hash: asset.hash },
+            },
+          },
+          expectedDraftUpdatedAt: configuration.draftUpdatedAt,
+        },
+      });
+      await refetchAll();
+      await refetchAssets();
+      enqueueSuccessSnackBar({ message: t`Asset uploaded and set in draft` });
+    } catch (error) {
+      enqueueErrorSnackBar({ message: (error as Error).message });
+    } finally {
+      setActiveUploadSlot(null);
     }
   };
 
@@ -294,6 +385,40 @@ export const SettingsO2dBranding = () => {
                   <li>{t`Use a 6-digit hex color`}</li>
                 </StyledIssueList>
               )}
+            </Section>
+            <Section>
+              <H2Title
+                title={t`Assets`}
+                description={t`Favicon and logos. Files are validated and sanitized server-side; the published version pins exact file hashes.`}
+              />
+              <StyledHiddenFileInput
+                type="file"
+                data-testid="o2d-branding-asset-file-input"
+                ref={fileInputRef}
+                onChange={(event) =>
+                  handleUploadAssetFile(event.target.files?.[0])
+                }
+              />
+              {UPLOADABLE_ASSET_SLOTS.map(({ slot, label, accept }) => {
+                const draftAssetRef = configuration.draftConfig?.assets?.[slot];
+
+                return (
+                  <StyledAssetRow key={slot}>
+                    <span>
+                      {label}
+                      {draftAssetRef !== undefined
+                        ? ` · ${draftAssetRef.hash.slice(0, 8)}`
+                        : ` · ${t`not set`}`}
+                    </span>
+                    <Button
+                      title={t`Upload`}
+                      size="small"
+                      disabled={isBusy}
+                      onClick={() => handlePickAssetFile(slot, accept)}
+                    />
+                  </StyledAssetRow>
+                );
+              })}
             </Section>
             <Section>
               <H2Title
