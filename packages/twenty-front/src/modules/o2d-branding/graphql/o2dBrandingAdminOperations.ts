@@ -7,6 +7,7 @@ const CONFIGURATION_FIELDS = gql`
     status
     publishedVersionId
     draftConfig
+    draftHash
     draftUpdatedAt
     schemaVersion
     createdAt
@@ -31,8 +32,10 @@ export const GET_O2D_BRANDING_VERSIONS = gql`
       status
       hash
       adapterVersion
+      basedOnVersionId
       changelog
       createdAt
+      artifact
     }
   }
 `;
@@ -64,15 +67,6 @@ export const UPDATE_O2D_BRANDING_DRAFT = gql`
     }
   }
   ${CONFIGURATION_FIELDS}
-`;
-
-export const VALIDATE_O2D_BRANDING_DRAFT = gql`
-  mutation ValidateO2dBrandingDraft($id: UUID!) {
-    validateO2dBrandingDraft(id: $id) {
-      status
-      issues
-    }
-  }
 `;
 
 export const PUBLISH_O2D_BRANDING_CONFIGURATION = gql`
@@ -124,6 +118,70 @@ export const UPLOAD_O2D_BRANDING_ASSET = gql`
       createdAt
     }
   }
+`;
+
+export const PREVIEW_O2D_BRANDING_DRAFT = gql`
+  query PreviewO2dBrandingDraft($configurationId: UUID!) {
+    previewO2dBrandingDraft(configurationId: $configurationId) {
+      status
+      issues
+      artifact
+    }
+  }
+`;
+
+export const START_O2D_BRANDING_DRAFT_VALIDATION = gql`
+  mutation StartO2dBrandingDraftValidation($id: UUID!) {
+    startO2dBrandingDraftValidation(id: $id) {
+      id
+      status
+      draftHash
+      result
+      startedAt
+      finishedAt
+    }
+  }
+`;
+
+export const GET_O2D_BRANDING_VALIDATION_RUN = gql`
+  query GetO2dBrandingValidationRun($configurationId: UUID!) {
+    o2dBrandingValidationRun(configurationId: $configurationId) {
+      id
+      status
+      draftHash
+      result
+      startedAt
+      finishedAt
+    }
+  }
+`;
+
+export const GET_O2D_BRANDING_VERSION_DIFF = gql`
+  query GetO2dBrandingVersionDiff(
+    $configurationId: UUID!
+    $fromNumber: Int!
+    $toNumber: Int!
+  ) {
+    o2dBrandingVersionDiff(
+      configurationId: $configurationId
+      fromNumber: $fromNumber
+      toNumber: $toNumber
+    ) {
+      fromNumber
+      toNumber
+      tokenChanges
+      assetChanges
+    }
+  }
+`;
+
+export const RESTORE_O2D_BRANDING_VERSION_AS_DRAFT = gql`
+  mutation RestoreO2dBrandingVersionAsDraft($id: UUID!, $versionNumber: Int!) {
+    restoreO2dBrandingVersionAsDraft(id: $id, versionNumber: $versionNumber) {
+      ...O2dBrandingConfigurationFields
+    }
+  }
+  ${CONFIGURATION_FIELDS}
 `;
 
 export const ROLLBACK_O2D_BRANDING_CONFIGURATION = gql`

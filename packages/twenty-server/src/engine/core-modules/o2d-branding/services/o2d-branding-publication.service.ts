@@ -160,6 +160,7 @@ export class O2dBrandingPublicationService {
         status: O2dBrandingVersionStatus.PUBLISHED,
         snapshot: resolved,
         assetManifest: resolved.assets,
+        sourceConfig: configuration.draftConfig,
         artifact: {
           cssLight: overrides.light,
           cssDark: overrides.dark,
@@ -284,6 +285,7 @@ export class O2dBrandingPublicationService {
           status: O2dBrandingVersionStatus.PUBLISHED,
           snapshot: targetVersion.snapshot,
           assetManifest: targetVersion.assetManifest,
+          sourceConfig: targetVersion.sourceConfig ?? null,
           artifact: targetVersion.artifact,
           schemaVersion: targetVersion.schemaVersion,
           adapterVersion: targetVersion.adapterVersion,
@@ -337,6 +339,74 @@ export class O2dBrandingPublicationService {
     await this.cacheService.invalidatePublishedArtifact(workspaceId);
 
     return restoredVersion;
+  }
+
+  // Escape hatch of doc 15 §4: when a rollback is blocked (adapter drift)
+  // — or the admin simply wants to iterate on an old look — the version's
+  // source config becomes the editable draft. History stays untouched; the
+  // normal validate → publish flow takes over from here.
+  async restoreVersionAsDraft(
+    workspaceId: string,
+    userId: string | undefined,
+    configurationId: string,
+    versionNumber: number,
+  ): Promise<O2dBrandingConfigurationEntity> {
+    const restored = await this.dataSource.transaction(
+      async (entityManager) => {
+        const configuration = await this.findConfiguration(
+          entityManager,
+          workspaceId,
+          configurationId,
+        );
+
+        const targetVersion = await entityManager.findOneBy(
+          O2dBrandingVersionEntity,
+          { configurationId: configuration.id, number: versionNumber },
+        );
+
+        if (targetVersion === null) {
+          throw new NotFoundException(
+            `version ${versionNumber} not found for this configuration`,
+          );
+        }
+
+        if (
+          targetVersion.sourceConfig === null ||
+          targetVersion.sourceConfig === undefined
+        ) {
+          throw new UnprocessableEntityException(
+            `version ${versionNumber} predates source-config snapshots and cannot be restored as a draft`,
+          );
+        }
+
+        await entityManager.update(
+          O2dBrandingConfigurationEntity,
+          { id: configuration.id },
+          {
+            draftConfig: targetVersion.sourceConfig,
+            draftUpdatedAt: new Date(),
+            draftUpdatedBy: userId ?? null,
+            schemaVersion: targetVersion.sourceConfig.schemaVersion,
+          },
+        );
+
+        await this.auditService.record(entityManager, {
+          eventType: 'branding.version.restored_as_draft',
+          workspaceId,
+          configurationId: configuration.id,
+          versionId: targetVersion.id,
+          actorType: 'user',
+          actorId: userId,
+          payload: { restoredFromVersion: versionNumber },
+        });
+
+        return entityManager.findOneByOrFail(O2dBrandingConfigurationEntity, {
+          id: configuration.id,
+        });
+      },
+    );
+
+    return restored;
   }
 
   async listVersions(
