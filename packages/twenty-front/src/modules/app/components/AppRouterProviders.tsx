@@ -28,6 +28,8 @@ import { DialogManager } from '@/ui/feedback/dialog-manager/components/DialogMan
 import { DialogComponentInstanceContext } from '@/ui/feedback/dialog-manager/contexts/DialogComponentInstanceContext';
 import { SnackBarProvider } from '@/ui/feedback/snack-bar-manager/components/SnackBarProvider';
 import { GlobalFilePreviewModal } from '@/ui/field/display/components/GlobalFilePreviewModal';
+// O2D-PATCH: P1
+import { O2dBrandingProvider } from '@/o2d-branding/components/O2dBrandingProvider';
 import { BaseThemeProvider } from '@/ui/theme/components/BaseThemeProvider';
 import { UserThemeProviderEffect } from '@/ui/theme/components/UserThemeProviderEffect';
 import { PageFavicon } from '@/ui/utilities/page-favicon/components/PageFavicon';
@@ -43,56 +45,59 @@ export const AppRouterProviders = () => {
 
   return (
     <ApolloProvider>
-      <BaseThemeProvider>
-        <ClientConfigProviderEffect />
-        <UserMetadataProviderInitialEffect />
-        <MinimalMetadataLoadEffect />
-        <IsMinimalMetadataReadyEffect />
-        <WorkspaceProviderEffect />
-        <ClientConfigProvider>
-          <CaptchaProvider>
-            <MinimalMetadataGater>
-              <AuthProvider>
-                <ApolloCoreProvider>
-                  <ApolloAdminProvider>
-                    <SSEProvider>
-                      <PreComputedChipGeneratorsProvider>
-                        <UserThemeProviderEffect />
-                        <SnackBarProvider>
-                          <ErrorMessageEffect />
-                          <AgentChatProvider>
-                            <DialogComponentInstanceContext.Provider
-                              value={{ instanceId: 'dialog-manager' }}
-                            >
-                              <DialogManager>
-                                <StrictMode>
-                                  <PromiseRejectionEffect />
-                                  <EndTrialAfterPaymentMethodGater />
-                                  <GotoHotkeysEffectsProvider />
-                                  <PageTitle title={pageTitle} />
-                                  <PageFavicon />
-                                  <Outlet />
-                                  <GlobalFilePreviewModal />
-                                  <CommandMenuConfirmationModalManager />
-                                  <CommandRunner />
-                                </StrictMode>
-                              </DialogManager>
-                            </DialogComponentInstanceContext.Provider>
-                          </AgentChatProvider>
-                        </SnackBarProvider>
-                        <MainContextStoreProvider />
-                        <SupportChatEffect />
-                        <PageChangeEffect />
-                        <SignOutOnOtherTabSignOutEffect />
-                      </PreComputedChipGeneratorsProvider>
-                    </SSEProvider>
-                  </ApolloAdminProvider>
-                </ApolloCoreProvider>
-              </AuthProvider>
-            </MinimalMetadataGater>
-          </CaptchaProvider>
-        </ClientConfigProvider>
-      </BaseThemeProvider>
+      {/* O2D-PATCH: P1 — branding wraps the theme provider from outside */}
+      <O2dBrandingProvider>
+        <BaseThemeProvider>
+          <ClientConfigProviderEffect />
+          <UserMetadataProviderInitialEffect />
+          <MinimalMetadataLoadEffect />
+          <IsMinimalMetadataReadyEffect />
+          <WorkspaceProviderEffect />
+          <ClientConfigProvider>
+            <CaptchaProvider>
+              <MinimalMetadataGater>
+                <AuthProvider>
+                  <ApolloCoreProvider>
+                    <ApolloAdminProvider>
+                      <SSEProvider>
+                        <PreComputedChipGeneratorsProvider>
+                          <UserThemeProviderEffect />
+                          <SnackBarProvider>
+                            <ErrorMessageEffect />
+                            <AgentChatProvider>
+                              <DialogComponentInstanceContext.Provider
+                                value={{ instanceId: 'dialog-manager' }}
+                              >
+                                <DialogManager>
+                                  <StrictMode>
+                                    <PromiseRejectionEffect />
+                                    <EndTrialAfterPaymentMethodGater />
+                                    <GotoHotkeysEffectsProvider />
+                                    <PageTitle title={pageTitle} />
+                                    <PageFavicon />
+                                    <Outlet />
+                                    <GlobalFilePreviewModal />
+                                    <CommandMenuConfirmationModalManager />
+                                    <CommandRunner />
+                                  </StrictMode>
+                                </DialogManager>
+                              </DialogComponentInstanceContext.Provider>
+                            </AgentChatProvider>
+                          </SnackBarProvider>
+                          <MainContextStoreProvider />
+                          <SupportChatEffect />
+                          <PageChangeEffect />
+                          <SignOutOnOtherTabSignOutEffect />
+                        </PreComputedChipGeneratorsProvider>
+                      </SSEProvider>
+                    </ApolloAdminProvider>
+                  </ApolloCoreProvider>
+                </AuthProvider>
+              </MinimalMetadataGater>
+            </CaptchaProvider>
+          </ClientConfigProvider>
+        </BaseThemeProvider>
+      </O2dBrandingProvider>
     </ApolloProvider>
   );
 };

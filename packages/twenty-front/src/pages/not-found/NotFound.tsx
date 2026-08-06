@@ -1,6 +1,9 @@
 import { Trans, useLingui } from '@lingui/react/macro';
 import { lazy, Suspense } from 'react';
 
+// O2D-PATCH: P3
+import { getO2dProductName } from '@/o2d-branding/utils/getO2dProductName';
+
 const BackgroundMockPage = lazy(() =>
   import('@/sign-in-background-mock/components/BackgroundMockPage').then(
     (module) => ({ default: module.BackgroundMockPage }),
@@ -46,7 +49,8 @@ export const NotFound = () => {
 
   return (
     <>
-      <PageTitle title={t`Page Not Found | Twenty`} />
+      {/* O2D-PATCH: P3 — distribution product name in the 404 title */}
+      <PageTitle title={`${t`Page Not Found`} | ${getO2dProductName()}`} />
       <StyledBackDrop>
         <AnimatedPlaceholderErrorContainer>
           <AnimatedPlaceholder type="error404" />

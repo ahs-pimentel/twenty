@@ -16,6 +16,8 @@ jobs:
     with:
       files: |
         packages/o2d-branding-core/**
+        packages/twenty-front/src/modules/o2d-branding/**
+        packages/twenty-front/index.html
         tools/o2d/**
         .o2d/**
         .github/workflows/ci-o2d-branding.yaml

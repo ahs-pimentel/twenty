@@ -1,0 +1,216 @@
+{
+  "name": "preset.odois",
+  "version": 1,
+  "sourceCommit": "538b180824dc4c3bbd3b9cb70662a01a69a64ae1",
+  "brand": {
+    "productName": "óDois CRM",
+    "shortName": "óDois"
+  },
+  "tokens": {
+    "background.primary": {
+      "light": "color(display-p3 1 1 1)",
+      "dark": "color(display-p3 0.09 0.09 0.09)"
+    },
+    "background.secondary": {
+      "light": "color(display-p3 0.988 0.988 0.988)",
+      "dark": "color(display-p3 0.106 0.106 0.106)"
+    },
+    "background.tertiary": {
+      "light": "color(display-p3 0.945 0.945 0.945)",
+      "dark": "color(display-p3 0.114 0.114 0.114)"
+    },
+    "border.default": {
+      "light": "color(display-p3 0.922 0.922 0.922)",
+      "dark": "color(display-p3 0.133 0.133 0.133)"
+    },
+    "border.focus": {
+      "light": "#c2b3ff",
+      "dark": "#5b3da2"
+    },
+    "border.strong": {
+      "light": "color(display-p3 0.839 0.839 0.839)",
+      "dark": "color(display-p3 0.282 0.282 0.282)"
+    },
+    "brand.onPrimary": {
+      "light": "#ffffff",
+      "dark": "#ffffff"
+    },
+    "brand.primary": {
+      "light": "#7c3aed",
+      "dark": "#7c3aed"
+    },
+    "brand.primaryActive": {
+      "light": "#7139d6",
+      "dark": "#b9a6ff"
+    },
+    "brand.primaryHover": {
+      "light": "#742be5",
+      "dark": "#8854f4"
+    },
+    "brand.scale.1": {
+      "light": "#fdfdfe",
+      "dark": "#141121"
+    },
+    "brand.scale.10": {
+      "light": "#742be5",
+      "dark": "#8854f4"
+    },
+    "brand.scale.11": {
+      "light": "#7139d6",
+      "dark": "#b9a6ff"
+    },
+    "brand.scale.12": {
+      "light": "#352162",
+      "dark": "#e2dcff"
+    },
+    "brand.scale.2": {
+      "light": "#f9f8ff",
+      "dark": "#191428"
+    },
+    "brand.scale.3": {
+      "light": "#f2f0ff",
+      "dark": "#2a1b4e"
+    },
+    "brand.scale.4": {
+      "light": "#eae6ff",
+      "dark": "#372069"
+    },
+    "brand.scale.5": {
+      "light": "#dfd9ff",
+      "dark": "#43287c"
+    },
+    "brand.scale.6": {
+      "light": "#d3c9ff",
+      "dark": "#4e338d"
+    },
+    "brand.scale.7": {
+      "light": "#c2b3ff",
+      "dark": "#5b3da2"
+    },
+    "brand.scale.8": {
+      "light": "#ac94fb",
+      "dark": "#6b47bd"
+    },
+    "brand.scale.9": {
+      "light": "#7c3aed",
+      "dark": "#7c3aed"
+    },
+    "font.family.body": {
+      "light": "Inter, sans-serif",
+      "dark": "Inter, sans-serif"
+    },
+    "font.lineHeight": {
+      "light": "1.5",
+      "dark": "1.5"
+    },
+    "font.size.lg": {
+      "light": "1.23rem",
+      "dark": "1.23rem"
+    },
+    "font.size.md": {
+      "light": "1rem",
+      "dark": "1rem"
+    },
+    "font.size.sm": {
+      "light": "0.92rem",
+      "dark": "0.92rem"
+    },
+    "font.size.xl": {
+      "light": "1.54rem",
+      "dark": "1.54rem"
+    },
+    "font.size.xs": {
+      "light": "0.85rem",
+      "dark": "0.85rem"
+    },
+    "font.weight.medium": {
+      "light": "500",
+      "dark": "500"
+    },
+    "font.weight.regular": {
+      "light": "400",
+      "dark": "400"
+    },
+    "font.weight.semibold": {
+      "light": "600",
+      "dark": "600"
+    },
+    "radius.md": {
+      "light": "8px",
+      "dark": "8px"
+    },
+    "radius.pill": {
+      "light": "999px",
+      "dark": "999px"
+    },
+    "radius.sm": {
+      "light": "4px",
+      "dark": "4px"
+    },
+    "radius.xl": {
+      "light": "20px",
+      "dark": "20px"
+    },
+    "shadow.lg": {
+      "light": "0px 0px 8px 0px color(display-p3 0 0 0 / 0.161), 0px 8px 64px -16px color(display-p3 0 0 0 / 0.478), 0px 24px 56px -16px color(display-p3 0 0 0 / 0.078)",
+      "dark": "2px 4px 16px 0px rgba(0, 0, 0, 0.12), 0px 2px 4px 0px rgba(0, 0, 0, 0.04)"
+    },
+    "shadow.md": {
+      "light": "2px 4px 16px 0px color(display-p3 0 0 0 / 0.161), 0px 2px 4px 0px color(display-p3 0 0 0 / 0.078)",
+      "dark": "2px 4px 16px 0px rgba(0, 0, 0, 0.16), 0px 2px 4px 0px rgba(0, 0, 0, 0.08)"
+    },
+    "shadow.sm": {
+      "light": "0px 2px 4px 0px color(display-p3 0 0 0 / 0.039), 0px 0px 4px 0px color(display-p3 0 0 0 / 0.078)",
+      "dark": "0px 2px 4px 0px rgba(0, 0, 0, 0.04), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+    },
+    "spacing.unit": {
+      "light": "4",
+      "dark": "4"
+    },
+    "status.error": {
+      "light": "color(display-p3 0.83 0.329 0.324)",
+      "dark": "color(display-p3 0.83 0.329 0.324)"
+    },
+    "status.info": {
+      "light": "color(display-p3 0.276 0.384 0.837)",
+      "dark": "color(display-p3 0.276 0.384 0.837)"
+    },
+    "status.success": {
+      "light": "color(display-p3 0.332 0.634 0.442)",
+      "dark": "color(display-p3 0.332 0.634 0.442)"
+    },
+    "status.warning": {
+      "light": "color(display-p3 0.9 0.45 0.2)",
+      "dark": "color(display-p3 0.9 0.45 0.2)"
+    },
+    "surface.elevated": {
+      "light": "color(display-p3 1 1 1)",
+      "dark": "color(display-p3 0.09 0.09 0.09)"
+    },
+    "surface.primary": {
+      "light": "color(display-p3 0.988 0.988 0.988)",
+      "dark": "color(display-p3 0.106 0.106 0.106)"
+    },
+    "surface.secondary": {
+      "light": "color(display-p3 0.945 0.945 0.945)",
+      "dark": "color(display-p3 0.114 0.114 0.114)"
+    },
+    "text.inverse": {
+      "light": "color(display-p3 1 1 1)",
+      "dark": "color(display-p3 0.09 0.09 0.09)"
+    },
+    "text.muted": {
+      "light": "color(display-p3 0.6 0.6 0.6)",
+      "dark": "color(display-p3 0.506 0.506 0.506)"
+    },
+    "text.primary": {
+      "light": "color(display-p3 0.2 0.2 0.2)",
+      "dark": "color(display-p3 0.922 0.922 0.922)"
+    },
+    "text.secondary": {
+      "light": "color(display-p3 0.4 0.4 0.4)",
+      "dark": "color(display-p3 0.702 0.702 0.702)"
+    }
+  },
+  "assets": {}
+}
