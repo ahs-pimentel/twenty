@@ -29,6 +29,25 @@ describe('applyO2dBrandingStylesheet', () => {
     expect(document.querySelectorAll('#o2d-branding')).toHaveLength(1);
   });
 
+  it('swaps atomically to a published artifact with a different hash', () => {
+    applyO2dBrandingStylesheet(document);
+    applyO2dBrandingStylesheet(document, {
+      hash: 'published-hash',
+      css: {
+        light: { '--t-color-blue': 'mock-light-value' },
+        dark: { '--t-color-blue': 'mock-dark-value' },
+      },
+    });
+
+    const styleElements = document.querySelectorAll('#o2d-branding');
+
+    expect(styleElements).toHaveLength(1);
+    expect(styleElements[0].getAttribute('data-hash')).toBe('published-hash');
+    expect(styleElements[0].textContent).toContain(
+      '--t-color-blue: mock-light-value;',
+    );
+  });
+
   it('replaces a stale stylesheet from another hash', () => {
     const staleElement = document.createElement('style');
 
