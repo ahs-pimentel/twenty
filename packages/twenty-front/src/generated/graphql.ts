@@ -215,6 +215,7 @@ export type Mutation = {
   retryWorkflowRun: WorkflowRun;
   rollbackO2dBrandingConfiguration: O2dBrandingVersion;
   runWorkflowVersion: RunWorkflowVersion;
+  startO2dBrandingDraftValidation: O2dBrandingValidationRun;
   stopWorkflowRun: WorkflowRun;
   submitFormStep: Scalars['Boolean']['output'];
   testHttpRequest: TestHttpRequest;
@@ -316,6 +317,11 @@ export type MutationRunWorkflowVersionArgs = {
 };
 
 
+export type MutationStartO2dBrandingDraftValidationArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
 export type MutationStopWorkflowRunArgs = {
   workflowRunId: Scalars['UUID']['input'];
 };
@@ -413,6 +419,16 @@ export type O2dBrandingValidationResult = {
   status: Scalars['String']['output'];
 };
 
+export type O2dBrandingValidationRun = {
+  __typename?: 'O2dBrandingValidationRun';
+  draftHash: Scalars['String']['output'];
+  finishedAt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  result?: Maybe<Scalars['JSON']['output']>;
+  startedAt: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+};
+
 export type O2dBrandingVersion = {
   __typename?: 'O2dBrandingVersion';
   adapterVersion: Scalars['String']['output'];
@@ -472,6 +488,7 @@ export type Query = {
   o2dBrandingAssets: Array<O2dBrandingAsset>;
   o2dBrandingConfiguration: O2dBrandingConfiguration;
   o2dBrandingConfigurations: Array<O2dBrandingConfiguration>;
+  o2dBrandingValidationRun?: Maybe<O2dBrandingValidationRun>;
   o2dBrandingVersions: Array<O2dBrandingVersion>;
   search: SearchResultConnection;
   workflowStepConnectedAccountHandle?: Maybe<ConnectedAccountHandleDto>;
@@ -543,6 +560,11 @@ export type QueryO2dBrandingAssetsArgs = {
 
 export type QueryO2dBrandingConfigurationArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryO2dBrandingValidationRunArgs = {
+  configurationId: Scalars['UUID']['input'];
 };
 
 

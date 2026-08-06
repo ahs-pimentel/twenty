@@ -14,6 +14,8 @@ import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/e
 import { O2dBrandingResolver } from 'src/engine/core-modules/o2d-branding/resolvers/o2d-branding.resolver';
 import { O2dBrandingAssetService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-asset.service';
 import { O2dBrandingAuditService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-audit.service';
+import { O2dBrandingCacheService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-cache.service';
+import { O2dBrandingValidationRunService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-validation-run.service';
 import { O2dBrandingConfigurationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-configuration.service';
 import { O2dBrandingDistributionService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-distribution.service';
 import { O2dBrandingPublicationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-publication.service';
@@ -44,12 +46,18 @@ import { PermissionsModule } from 'src/engine/metadata-modules/permissions/permi
   providers: [
     O2dBrandingAssetService,
     O2dBrandingAuditService,
+    O2dBrandingCacheService,
     O2dBrandingConfigurationService,
     O2dBrandingDistributionService,
     O2dBrandingPublicationService,
     O2dBrandingResolutionService,
+    O2dBrandingValidationRunService,
     O2dBrandingResolver,
   ],
-  exports: [O2dBrandingResolutionService, O2dBrandingDistributionService],
+  exports: [
+    O2dBrandingResolutionService,
+    O2dBrandingDistributionService,
+    O2dBrandingValidationRunService,
+  ],
 })
 export class O2dBrandingModule {}

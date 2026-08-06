@@ -5,6 +5,7 @@ import { O2dBrandingAssetEntity } from 'src/engine/core-modules/o2d-branding/ent
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
 import { O2dBrandingAssetStatus } from 'src/engine/core-modules/o2d-branding/enums/o2d-branding.enums';
+import { O2dBrandingCacheService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-cache.service';
 import { O2dBrandingDistributionService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-distribution.service';
 import { O2dBrandingResolutionService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-resolution.service';
 
@@ -13,8 +14,17 @@ describe('O2dBrandingResolutionService', () => {
   const configurationRepository = { findOne: jest.fn() };
   const versionRepository = { findOneBy: jest.fn() };
   const assetRepository = { findBy: jest.fn().mockResolvedValue([]) };
+  const cacheService = {
+    getPublishedArtifact: jest.fn(),
+    setPublishedArtifact: jest.fn(),
+    invalidatePublishedArtifact: jest.fn(),
+  };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+    assetRepository.findBy.mockResolvedValue([]);
+    cacheService.getPublishedArtifact.mockResolvedValue(undefined);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         O2dBrandingResolutionService,
@@ -31,6 +41,7 @@ describe('O2dBrandingResolutionService', () => {
           provide: getRepositoryToken(O2dBrandingAssetEntity),
           useValue: assetRepository,
         },
+        { provide: O2dBrandingCacheService, useValue: cacheService },
       ],
     }).compile();
 
@@ -135,5 +146,63 @@ describe('O2dBrandingResolutionService', () => {
     const artifact = await service.resolveByWorkspace('ws-1');
 
     expect(artifact.meta.source).toBe('distribution');
+  });
+
+  it('serves a cache hit without touching the database', async () => {
+    const cachedArtifact = {
+      hash: 'cached-hash',
+      cssLight: {},
+      cssDark: {},
+      assets: {},
+      brand: { productName: 'Cliente X', shortName: 'X' },
+      meta: {
+        adapterVersion: 'o2d-adapter/538b1808@1',
+        source: 'workspace' as const,
+        publishedAt: '2026-08-06T00:00:00Z',
+      },
+    };
+
+    cacheService.getPublishedArtifact.mockResolvedValue(cachedArtifact);
+
+    const artifact = await service.resolveByWorkspace('ws-1');
+
+    expect(artifact).toBe(cachedArtifact);
+    expect(configurationRepository.findOne).not.toHaveBeenCalled();
+  });
+
+  it('populates the cache for workspace artifacts but never for fallbacks', async () => {
+    configurationRepository.findOne.mockResolvedValue(null);
+
+    await service.resolveByWorkspace('ws-1');
+
+    expect(cacheService.setPublishedArtifact).not.toHaveBeenCalled();
+
+    configurationRepository.findOne.mockResolvedValue({
+      id: 'cfg-1',
+      publishedVersionId: 'v-2',
+    });
+    versionRepository.findOneBy.mockResolvedValue({
+      id: 'v-2',
+      hash: 'abc123',
+      adapterVersion: 'o2d-adapter/538b1808@1',
+      createdAt: new Date('2026-08-06T00:00:00Z'),
+      artifact: {
+        cssLight: {},
+        cssDark: {},
+        meta: {
+          adapterVersion: 'o2d-adapter/538b1808@1',
+          hash: 'abc123',
+          productName: 'Cliente X',
+          shortName: 'X',
+        },
+      },
+    });
+
+    const artifact = await service.resolveByWorkspace('ws-1');
+
+    expect(cacheService.setPublishedArtifact).toHaveBeenCalledWith(
+      'ws-1',
+      artifact,
+    );
   });
 });
