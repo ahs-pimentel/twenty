@@ -65,7 +65,7 @@ export class O2dBrandingAssetEntity {
   @Column()
   storageKey: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   url?: string | null;
 
   @Column({ type: 'int', default: 1 })

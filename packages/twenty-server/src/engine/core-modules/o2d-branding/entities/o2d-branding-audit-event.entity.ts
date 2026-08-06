@@ -34,7 +34,7 @@ export class O2dBrandingAuditEventEntity {
   @Column()
   actorType: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   actorId?: string | null;
 
   @Column({ type: 'jsonb', default: () => "'{}'" })

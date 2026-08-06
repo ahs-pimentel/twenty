@@ -44,6 +44,6 @@ export class O2dBrandingCompatibilityReportEntity {
   @CreateDateColumn({ type: 'timestamptz' })
   generatedAt: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   syncRunId?: string | null;
 }
