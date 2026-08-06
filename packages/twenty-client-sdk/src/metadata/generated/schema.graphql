@@ -4654,6 +4654,7 @@ enum FileFolder {
   AppTarball
   GeneratedSdkClient
   Dpa
+  BrandingAsset
 }
 
 type Subscription {
