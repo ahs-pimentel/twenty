@@ -212,6 +212,7 @@ export type Mutation = {
   duplicateWorkflowVersionStep: WorkflowVersionStepChanges;
   generateSignedDpa: GenerateSignedDpaResult;
   publishO2dBrandingConfiguration: O2dBrandingVersion;
+  restoreO2dBrandingVersionAsDraft: O2dBrandingConfiguration;
   retryWorkflowRun: WorkflowRun;
   rollbackO2dBrandingConfiguration: O2dBrandingVersion;
   runWorkflowVersion: RunWorkflowVersion;
@@ -297,6 +298,12 @@ export type MutationGenerateSignedDpaArgs = {
 export type MutationPublishO2dBrandingConfigurationArgs = {
   changelog?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
+};
+
+
+export type MutationRestoreO2dBrandingVersionAsDraftArgs = {
+  id: Scalars['UUID']['input'];
+  versionNumber: Scalars['Int']['input'];
 };
 
 
@@ -399,6 +406,7 @@ export type O2dBrandingConfiguration = {
   __typename?: 'O2dBrandingConfiguration';
   createdAt: Scalars['DateTime']['output'];
   draftConfig?: Maybe<Scalars['JSON']['output']>;
+  draftHash?: Maybe<Scalars['String']['output']>;
   draftUpdatedAt?: Maybe<Scalars['DateTime']['output']>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
@@ -412,6 +420,13 @@ export enum O2dBrandingConfigurationStatus {
   ACTIVE = 'ACTIVE',
   ARCHIVED = 'ARCHIVED'
 }
+
+export type O2dBrandingDraftPreview = {
+  __typename?: 'O2dBrandingDraftPreview';
+  artifact?: Maybe<Scalars['JSON']['output']>;
+  issues: Scalars['JSON']['output'];
+  status: Scalars['String']['output'];
+};
 
 export type O2dBrandingValidationResult = {
   __typename?: 'O2dBrandingValidationResult';
@@ -443,6 +458,14 @@ export type O2dBrandingVersion = {
   snapshot: Scalars['JSON']['output'];
   status: O2dBrandingVersionStatus;
   validationResult?: Maybe<Scalars['JSON']['output']>;
+};
+
+export type O2dBrandingVersionDiff = {
+  __typename?: 'O2dBrandingVersionDiff';
+  assetChanges: Scalars['JSON']['output'];
+  fromNumber: Scalars['Int']['output'];
+  toNumber: Scalars['Int']['output'];
+  tokenChanges: Scalars['JSON']['output'];
 };
 
 export enum O2dBrandingVersionStatus {
@@ -489,7 +512,9 @@ export type Query = {
   o2dBrandingConfiguration: O2dBrandingConfiguration;
   o2dBrandingConfigurations: Array<O2dBrandingConfiguration>;
   o2dBrandingValidationRun?: Maybe<O2dBrandingValidationRun>;
+  o2dBrandingVersionDiff: O2dBrandingVersionDiff;
   o2dBrandingVersions: Array<O2dBrandingVersion>;
+  previewO2dBrandingDraft: O2dBrandingDraftPreview;
   search: SearchResultConnection;
   workflowStepConnectedAccountHandle?: Maybe<ConnectedAccountHandleDto>;
 };
@@ -568,7 +593,19 @@ export type QueryO2dBrandingValidationRunArgs = {
 };
 
 
+export type QueryO2dBrandingVersionDiffArgs = {
+  configurationId: Scalars['UUID']['input'];
+  fromNumber: Scalars['Int']['input'];
+  toNumber: Scalars['Int']['input'];
+};
+
+
 export type QueryO2dBrandingVersionsArgs = {
+  configurationId: Scalars['UUID']['input'];
+};
+
+
+export type QueryPreviewO2dBrandingDraftArgs = {
   configurationId: Scalars['UUID']['input'];
 };
 

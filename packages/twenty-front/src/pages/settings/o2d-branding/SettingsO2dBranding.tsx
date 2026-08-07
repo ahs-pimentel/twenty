@@ -14,14 +14,22 @@ import { SettingsPageLayout } from '@/settings/components/layout/SettingsPageLay
 import { SaveAndCancelButtons } from '@/settings/components/SaveAndCancelButtons/SaveAndCancelButtons';
 import { SettingsTextInput } from '@/ui/input/components/SettingsTextInput';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { O2dBrandingVersionHistory } from '@/o2d-branding/components/O2dBrandingVersionHistory';
 import { useO2dBrandingAdmin } from '@/o2d-branding/hooks/useO2dBrandingAdmin';
+import { o2dBrandingArtifactState } from '@/o2d-branding/states/o2dBrandingArtifactState';
+import { applyO2dBrandingStylesheet } from '@/o2d-branding/utils/applyO2dBrandingStylesheet';
+import { getO2dBrandingDraftStatus } from '@/o2d-branding/utils/getO2dBrandingDraftStatus';
 import { getO2dDefaultBrandColor } from '@/o2d-branding/utils/getO2dDefaultBrandColor';
 import {
   type O2dBrandingAdminValidationIssue,
   type O2dBrandingAdminVersion,
+  type O2dBrandingDraftStatus,
 } from '@/o2d-branding/types/O2dBrandingAdmin';
 
 const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{6})$/;
+
+const VALIDATION_RUN_POLL_INTERVAL_MS = 1500;
 
 // Uploadable slots surfaced in the MVP admin UI (doc 11 §2); the accept
 // list mirrors the server-side per-slot format allowlist.
@@ -34,6 +42,13 @@ const UPLOADABLE_ASSET_SLOTS: {
   { slot: 'logoLight', label: 'Logo (light)', accept: '.svg,.png,.webp' },
   { slot: 'logoDark', label: 'Logo (dark)', accept: '.svg,.png,.webp' },
 ];
+
+const DRAFT_STATUS_LABELS: Record<O2dBrandingDraftStatus, () => string> = {
+  DRAFT: () => t`Draft`,
+  VALIDATING: () => t`Validating…`,
+  VALIDATION_FAILED: () => t`Validation failed`,
+  READY_TO_PUBLISH: () => t`Ready to publish`,
+};
 
 const StyledColorRow = styled.div`
   align-items: center;
@@ -48,21 +63,32 @@ const StyledIssueList = styled.ul`
   padding-left: ${themeCssVariables.spacing[5]};
 `;
 
-const StyledVersionRow = styled.div`
+const StyledActionsRow = styled.div`
   align-items: center;
-  border-bottom: 1px solid ${themeCssVariables.border.color.light};
+  display: flex;
+  gap: ${themeCssVariables.spacing[2]};
+  margin-top: ${themeCssVariables.spacing[3]};
+`;
+
+const StyledDraftStatusChip = styled.span`
+  border: 1px solid ${themeCssVariables.border.color.medium};
+  border-radius: ${themeCssVariables.border.radius.sm};
+  color: ${themeCssVariables.font.color.secondary};
+  font-size: ${themeCssVariables.font.size.sm};
+  padding: ${themeCssVariables.spacing[1]} ${themeCssVariables.spacing[2]};
+`;
+
+const StyledPreviewBanner = styled.div`
+  align-items: center;
+  border: 1px solid ${themeCssVariables.border.color.medium};
+  border-radius: ${themeCssVariables.border.radius.sm};
   color: ${themeCssVariables.font.color.primary};
   display: flex;
   font-size: ${themeCssVariables.font.size.sm};
   gap: ${themeCssVariables.spacing[3]};
   justify-content: space-between;
-  padding: ${themeCssVariables.spacing[2]} 0;
-`;
-
-const StyledActionsRow = styled.div`
-  display: flex;
-  gap: ${themeCssVariables.spacing[2]};
-  margin-top: ${themeCssVariables.spacing[3]};
+  margin-bottom: ${themeCssVariables.spacing[3]};
+  padding: ${themeCssVariables.spacing[2]} ${themeCssVariables.spacing[3]};
 `;
 
 const StyledAssetRow = styled.div`
@@ -85,27 +111,61 @@ export const SettingsO2dBranding = () => {
     configuration,
     configurationsLoading,
     versions,
+    validationRun,
     refetchAll,
     refetchAssets,
+    refetchValidationRun,
+    startValidationRunPolling,
+    stopValidationRunPolling,
     createConfiguration,
     updateDraft,
     uploadAsset,
-    validateDraft,
+    startDraftValidation,
+    previewDraft,
+    fetchVersionDiff,
     publishConfiguration,
     rollbackConfiguration,
+    restoreVersionAsDraft,
     isBusy,
     isSavingDraft,
-    isValidating,
+    isPreviewLoading,
     isPublishing,
   } = useO2dBrandingAdmin();
+
+  const o2dBrandingArtifact = useAtomStateValue(o2dBrandingArtifactState);
 
   const [productName, setProductName] = useState('');
   const [shortName, setShortName] = useState('');
   const [brandColor, setBrandColor] = useState('');
-  const [rollbackReason, setRollbackReason] = useState('');
-  const [issues, setIssues] = useState<O2dBrandingAdminValidationIssue[]>([]);
+  const [previewIssues, setPreviewIssues] = useState<
+    O2dBrandingAdminValidationIssue[]
+  >([]);
+  const [activePreview, setActivePreview] = useState<{
+    label: string;
+    hash: string;
+    cssLight: Record<string, string>;
+    cssDark: Record<string, string>;
+  } | null>(null);
   const [activeUploadSlot, setActiveUploadSlot] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Preview is a stylesheet swap on this document only; the cleanup
+  // restores the published artifact on exit, switch or unmount — leaving
+  // the page must never keep a draft theme applied (doc 14 §5).
+  useEffect(() => {
+    if (activePreview === null) {
+      return;
+    }
+
+    applyO2dBrandingStylesheet(document, {
+      hash: `preview:${activePreview.hash}`,
+      css: { light: activePreview.cssLight, dark: activePreview.cssDark },
+    });
+
+    return () => {
+      applyO2dBrandingStylesheet(document, o2dBrandingArtifact);
+    };
+  }, [activePreview, o2dBrandingArtifact]);
 
   useEffect(() => {
     if (configuration?.draftConfig) {
@@ -117,6 +177,24 @@ export const SettingsO2dBranding = () => {
       setBrandColor(typeof brandPrimary === 'string' ? brandPrimary : '');
     }
   }, [configuration]);
+
+  const draftStatus = getO2dBrandingDraftStatus(
+    configuration?.draftHash,
+    validationRun,
+  );
+
+  useEffect(() => {
+    if (validationRun !== null && validationRun.status !== 'RUNNING') {
+      stopValidationRunPolling();
+    }
+  }, [validationRun, stopValidationRunPolling]);
+
+  const validationIssues =
+    validationRun !== null &&
+    validationRun.draftHash === configuration?.draftHash
+      ? (validationRun.result?.issues ?? [])
+      : [];
+  const issues = [...validationIssues, ...previewIssues];
 
   const hasValidColor = brandColor === '' || HEX_COLOR_PATTERN.test(brandColor);
 
@@ -245,27 +323,72 @@ export const SettingsO2dBranding = () => {
     }
   };
 
+  // Async validation (doc 19): the mutation answers with a RUNNING run and
+  // the worker fills in the result — polled here until it completes.
   const handleValidate = async () => {
     if (configuration === undefined) {
       return;
     }
 
     try {
-      const { data } = await validateDraft({
-        variables: { id: configuration.id },
-      });
-      const result = data?.validateO2dBrandingDraft;
-
-      setIssues(result?.issues ?? []);
-
-      if (result?.status === 'valid') {
-        enqueueSuccessSnackBar({ message: t`Draft is valid and publishable` });
-      } else {
-        enqueueErrorSnackBar({ message: t`Draft has blocking issues` });
-      }
+      setPreviewIssues([]);
+      await startDraftValidation({ variables: { id: configuration.id } });
+      await refetchValidationRun();
+      startValidationRunPolling(VALIDATION_RUN_POLL_INTERVAL_MS);
     } catch (error) {
       enqueueErrorSnackBar({ message: (error as Error).message });
     }
+  };
+
+  const handleExitPreview = () => {
+    setActivePreview(null);
+  };
+
+  // Draft preview (doc 14): ephemeral server artifact applied on this
+  // document only — the published theme and other users stay untouched.
+  const handlePreviewDraft = async () => {
+    if (configuration === undefined) {
+      return;
+    }
+
+    const { data } = await previewDraft({
+      variables: { configurationId: configuration.id },
+    });
+    const preview = data?.previewO2dBrandingDraft;
+
+    if (preview === undefined) {
+      enqueueErrorSnackBar({ message: t`Preview failed` });
+
+      return;
+    }
+
+    if (preview.status !== 'valid' || preview.artifact === null) {
+      setPreviewIssues(preview.issues);
+      enqueueErrorSnackBar({ message: t`Draft has blocking issues` });
+
+      return;
+    }
+
+    setPreviewIssues([]);
+    setActivePreview({
+      label: t`Previewing draft`,
+      hash: preview.artifact.hash,
+      cssLight: preview.artifact.cssLight,
+      cssDark: preview.artifact.cssDark,
+    });
+  };
+
+  const handlePreviewVersion = (version: O2dBrandingAdminVersion) => {
+    if (version.artifact === null) {
+      return;
+    }
+
+    setActivePreview({
+      label: t`Previewing version` + ` v${version.number}`,
+      hash: version.artifact.meta.hash,
+      cssLight: version.artifact.cssLight,
+      cssDark: version.artifact.cssDark,
+    });
   };
 
   const handlePublish = async () => {
@@ -276,15 +399,17 @@ export const SettingsO2dBranding = () => {
     try {
       await publishConfiguration({ variables: { id: configuration.id } });
       await refetchAll();
-      setIssues([]);
       enqueueSuccessSnackBar({ message: t`Branding published` });
     } catch (error) {
       enqueueErrorSnackBar({ message: (error as Error).message });
     }
   };
 
-  const handleRollback = async (version: O2dBrandingAdminVersion) => {
-    if (configuration === undefined || rollbackReason.trim() === '') {
+  const handleRollback = async (
+    version: O2dBrandingAdminVersion,
+    reason: string,
+  ) => {
+    if (configuration === undefined || reason === '') {
       enqueueErrorSnackBar({ message: t`A rollback reason is required` });
 
       return;
@@ -295,14 +420,49 @@ export const SettingsO2dBranding = () => {
         variables: {
           id: configuration.id,
           toVersion: version.number,
-          reason: rollbackReason.trim(),
+          reason,
         },
       });
       await refetchAll();
-      setRollbackReason('');
       enqueueSuccessSnackBar({ message: t`Rolled back` });
     } catch (error) {
       enqueueErrorSnackBar({ message: (error as Error).message });
+    }
+  };
+
+  const handleRestoreAsDraft = async (version: O2dBrandingAdminVersion) => {
+    if (configuration === undefined) {
+      return;
+    }
+
+    try {
+      await restoreVersionAsDraft({
+        variables: { id: configuration.id, versionNumber: version.number },
+      });
+      await refetchAll();
+      enqueueSuccessSnackBar({
+        message: t`Version restored as the editable draft`,
+      });
+    } catch (error) {
+      enqueueErrorSnackBar({ message: (error as Error).message });
+    }
+  };
+
+  const handleFetchDiff = async (fromNumber: number, toNumber: number) => {
+    if (configuration === undefined) {
+      return undefined;
+    }
+
+    try {
+      const { data } = await fetchVersionDiff({
+        variables: { configurationId: configuration.id, fromNumber, toNumber },
+      });
+
+      return data?.o2dBrandingVersionDiff;
+    } catch (error) {
+      enqueueErrorSnackBar({ message: (error as Error).message });
+
+      return undefined;
     }
   };
 
@@ -328,6 +488,18 @@ export const SettingsO2dBranding = () => {
       }
     >
       <SettingsPageContainer>
+        {activePreview !== null && (
+          <StyledPreviewBanner data-testid="o2d-branding-preview-banner">
+            <span>
+              {activePreview.label} — {t`the published theme is untouched`}
+            </span>
+            <Button
+              title={t`Exit preview`}
+              size="small"
+              onClick={handleExitPreview}
+            />
+          </StyledPreviewBanner>
+        )}
         {configuration === undefined ? (
           <Section>
             <H2Title
@@ -423,18 +595,26 @@ export const SettingsO2dBranding = () => {
             <Section>
               <H2Title
                 title={t`Validation and publication`}
-                description={t`Validation runs the full accessibility and token pipeline; publishing creates an immutable version.`}
+                description={t`Preview applies the draft to this window only. Validation runs the full pipeline in the background; publishing requires a validated draft and creates an immutable version.`}
               />
               <StyledActionsRow>
+                <StyledDraftStatusChip data-testid="o2d-branding-draft-status">
+                  {DRAFT_STATUS_LABELS[draftStatus]()}
+                </StyledDraftStatusChip>
+                <Button
+                  title={isPreviewLoading ? t`Loading preview...` : t`Preview`}
+                  disabled={isBusy || isPreviewLoading}
+                  onClick={handlePreviewDraft}
+                />
                 <Button
                   title={t`Validate`}
-                  disabled={isBusy}
+                  disabled={isBusy || draftStatus === 'VALIDATING'}
                   onClick={handleValidate}
                 />
                 <Button
                   title={isPublishing ? t`Publishing...` : t`Publish`}
                   accent="blue"
-                  disabled={isBusy || isValidating}
+                  disabled={isBusy || draftStatus !== 'READY_TO_PUBLISH'}
                   onClick={handlePublish}
                 />
               </StyledActionsRow>
@@ -450,37 +630,14 @@ export const SettingsO2dBranding = () => {
                 </StyledIssueList>
               )}
             </Section>
-            <Section>
-              <H2Title
-                title={t`Versions`}
-                description={t`Published history. Restoring creates a new version based on the selected one.`}
-              />
-              <SettingsTextInput
-                instanceId="o2d-branding-rollback-reason"
-                label={t`Rollback reason`}
-                value={rollbackReason}
-                onChange={setRollbackReason}
-                placeholder={t`Required to restore a version`}
-                fullWidth
-              />
-              {versions.map((version) => (
-                <StyledVersionRow key={version.id}>
-                  <span>
-                    v{version.number} · {version.status} ·{' '}
-                    {new Date(version.createdAt).toLocaleString()}
-                    {version.changelog ? ` · ${version.changelog}` : ''}
-                  </span>
-                  {version.status !== 'PUBLISHED' && (
-                    <Button
-                      title={t`Restore`}
-                      size="small"
-                      disabled={isBusy}
-                      onClick={() => handleRollback(version)}
-                    />
-                  )}
-                </StyledVersionRow>
-              ))}
-            </Section>
+            <O2dBrandingVersionHistory
+              versions={versions}
+              isBusy={isBusy}
+              onRollback={handleRollback}
+              onRestoreAsDraft={handleRestoreAsDraft}
+              onPreviewVersion={handlePreviewVersion}
+              onFetchDiff={handleFetchDiff}
+            />
           </>
         )}
       </SettingsPageContainer>

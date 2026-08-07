@@ -14,6 +14,7 @@ import {
   Unique,
 } from 'typeorm';
 import {
+  type O2DBrandingConfig,
   type O2DResolvedBranding,
   type ResolvedAssetMap,
   type ValidationIssue,
@@ -84,6 +85,12 @@ export class O2dBrandingVersionEntity {
 
   @Column({ type: 'jsonb', default: () => "'{}'" })
   assetManifest: ResolvedAssetMap;
+
+  // Exact source config that produced the snapshot (doc 15 §4) — lets an
+  // old-adapter version be restored as an editable draft. Nullable for
+  // versions published before phase 4.
+  @Column({ type: 'jsonb', nullable: true })
+  sourceConfig?: O2DBrandingConfig | null;
 
   @Field(() => GraphQLJSON, { nullable: true })
   @Column({ type: 'jsonb', nullable: true })

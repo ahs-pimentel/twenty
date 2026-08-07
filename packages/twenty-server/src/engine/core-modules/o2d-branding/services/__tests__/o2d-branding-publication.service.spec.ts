@@ -21,6 +21,7 @@ describe('O2dBrandingPublicationService', () => {
 
   const entityManager = {
     findOneBy: jest.fn(),
+    findOneByOrFail: jest.fn(),
     findOne: jest.fn(),
     save: jest.fn(),
     update: jest.fn(),
@@ -38,6 +39,8 @@ describe('O2dBrandingPublicationService', () => {
   const cacheService = { invalidatePublishedArtifact: jest.fn() };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         O2dBrandingPublicationService,
@@ -81,6 +84,8 @@ describe('O2dBrandingPublicationService', () => {
     expect(version.number).toBe(1);
     expect(version.status).toBe(O2dBrandingVersionStatus.PUBLISHED);
     expect(version.hash).toMatch(/^[a-f0-9]{64}$/);
+    // Source config snapshot enables restore-as-draft (doc 15 §4).
+    expect(version.sourceConfig).toEqual(configuration.draftConfig);
     expect(version.artifact?.cssLight['--t-color-blue9']).toBe('#7c3aed');
     // Redis invalidation happens after the transaction commits (doc 07 §5).
     expect(cacheService.invalidatePublishedArtifact).toHaveBeenCalledWith(
@@ -136,6 +141,7 @@ describe('O2dBrandingPublicationService', () => {
       schemaVersion: 'o2d.branding.config/1-0-0',
       twentyVersion: { baseCommit: 'abc' },
       hash: 'deadbeef',
+      sourceConfig: buildValidDraft(),
       validationResult: null,
     };
     const currentPublished = { id: 'v-7', number: 7 };
@@ -174,6 +180,7 @@ describe('O2dBrandingPublicationService', () => {
     expect(newVersion.number).toBe(8);
     expect(newVersion.basedOnVersionId).toBe('v-5');
     expect(newVersion.hash).toBe('deadbeef');
+    expect(newVersion.sourceConfig).toEqual(targetVersion.sourceConfig);
     expect(entityManager.update).toHaveBeenCalledWith(
       expect.anything(),
       { id: 'v-7' },
@@ -197,6 +204,84 @@ describe('O2dBrandingPublicationService', () => {
 
     await expect(
       service.rollback('ws-1', 'user-1', 'cfg-1', 3, 'reason'),
+    ).rejects.toBeInstanceOf(UnprocessableEntityException);
+  });
+
+  it('restores a version as the editable draft without touching history', async () => {
+    const configuration = {
+      id: 'cfg-1',
+      workspaceId: 'ws-1',
+      publishedVersionId: 'v-7',
+      draftConfig: buildValidDraft(),
+    };
+    const restoredSourceConfig = {
+      ...buildValidDraft(),
+      brand: { productName: 'Cliente Antigo', shortName: 'CA' },
+    };
+
+    entityManager.findOneBy.mockImplementation(
+      async (_entity: unknown, where: Record<string, unknown>) => {
+        if (where.id === 'cfg-1') {
+          return configuration;
+        }
+        if (where.number === 5) {
+          return {
+            id: 'v-5',
+            number: 5,
+            sourceConfig: restoredSourceConfig,
+          };
+        }
+
+        return null;
+      },
+    );
+    entityManager.findOneByOrFail.mockResolvedValue({
+      ...configuration,
+      draftConfig: restoredSourceConfig,
+    });
+
+    const updated = await service.restoreVersionAsDraft(
+      'ws-1',
+      'user-1',
+      'cfg-1',
+      5,
+    );
+
+    expect(updated.draftConfig).toEqual(restoredSourceConfig);
+    expect(entityManager.update).toHaveBeenCalledWith(
+      expect.anything(),
+      { id: 'cfg-1' },
+      expect.objectContaining({ draftConfig: restoredSourceConfig }),
+    );
+    expect(entityManager.insert).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        eventType: 'branding.version.restored_as_draft',
+      }),
+    );
+    // Restore-as-draft never creates or mutates version rows.
+    expect(entityManager.save).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ number: expect.anything() }),
+    );
+  });
+
+  it('refuses restore-as-draft for versions without a source config', async () => {
+    entityManager.findOneBy.mockImplementation(
+      async (_entity: unknown, where: Record<string, unknown>) => {
+        if (where.id === 'cfg-1') {
+          return { id: 'cfg-1', workspaceId: 'ws-1' };
+        }
+        if (where.number === 1) {
+          return { id: 'v-1', number: 1, sourceConfig: null };
+        }
+
+        return null;
+      },
+    );
+
+    await expect(
+      service.restoreVersionAsDraft('ws-1', 'user-1', 'cfg-1', 1),
     ).rejects.toBeInstanceOf(UnprocessableEntityException);
   });
 });

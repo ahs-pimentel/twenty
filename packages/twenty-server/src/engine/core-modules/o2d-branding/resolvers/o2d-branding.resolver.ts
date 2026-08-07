@@ -1,11 +1,18 @@
 import { UseFilters, UseGuards } from '@nestjs/common';
-import { Args, Int, Mutation, Query } from '@nestjs/graphql';
+import {
+  Args,
+  Int,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+} from '@nestjs/graphql';
 
 import GraphQLJSON from 'graphql-type-json';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import type { FileUpload } from 'graphql-upload/processRequest.mjs';
 import { PermissionFlagType } from 'twenty-shared/constants';
-import { type O2DBrandingConfig } from 'o2d-branding-core';
+import { canonicalHash, type O2DBrandingConfig } from 'o2d-branding-core';
 
 import { CoreResolver } from 'src/engine/api/graphql/graphql-config/decorators/core-resolver.decorator';
 import { UUIDScalarType } from 'src/engine/api/graphql/workspace-schema-builder/graphql-types/scalars';
@@ -18,12 +25,16 @@ import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import { O2dBrandingAssetEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-asset.entity';
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
+import { O2dBrandingDraftPreviewDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-draft-preview.dto';
 import { O2dBrandingValidationResultDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-validation-result.dto';
 import { O2dBrandingValidationRunDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-validation-run.dto';
+import { O2dBrandingVersionDiffDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-version-diff.dto';
 import { O2dBrandingAssetService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-asset.service';
 import { O2dBrandingConfigurationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-configuration.service';
+import { O2dBrandingPreviewService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-preview.service';
 import { O2dBrandingPublicationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-publication.service';
 import { O2dBrandingValidationRunService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-validation-run.service';
+import { O2dBrandingVersionDiffService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-version-diff.service';
 import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { streamToBuffer } from 'src/utils/stream-to-buffer';
@@ -43,7 +54,22 @@ export class O2dBrandingResolver {
     private readonly publicationService: O2dBrandingPublicationService,
     private readonly assetService: O2dBrandingAssetService,
     private readonly validationRunService: O2dBrandingValidationRunService,
+    private readonly previewService: O2dBrandingPreviewService,
+    private readonly versionDiffService: O2dBrandingVersionDiffService,
   ) {}
+
+  // Canonical hash of the current draft — lets the client derive the doc 15
+  // draft state machine (READY_TO_PUBLISH when it matches a completed valid
+  // validation run; any edit changes the hash and demotes back to DRAFT).
+  @ResolveField(() => String, { nullable: true })
+  draftHash(
+    @Parent() configuration: O2dBrandingConfigurationEntity,
+  ): string | null {
+    return configuration.draftConfig !== null &&
+      configuration.draftConfig !== undefined
+      ? canonicalHash(configuration.draftConfig)
+      : null;
+  }
 
   @Query(() => [O2dBrandingConfigurationEntity])
   async o2dBrandingConfigurations(
@@ -175,6 +201,48 @@ export class O2dBrandingResolver {
       filename,
       file,
     });
+  }
+
+  // Draft preview (doc 14): ephemeral artifact, applied client-side on the
+  // admin's own document — never persisted nor served publicly.
+  @Query(() => O2dBrandingDraftPreviewDTO)
+  async previewO2dBrandingDraft(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @Args('configurationId', { type: () => UUIDScalarType })
+    configurationId: string,
+  ): Promise<O2dBrandingDraftPreviewDTO> {
+    return this.previewService.previewDraft(workspace.id, configurationId);
+  }
+
+  @Query(() => O2dBrandingVersionDiffDTO)
+  async o2dBrandingVersionDiff(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @Args('configurationId', { type: () => UUIDScalarType })
+    configurationId: string,
+    @Args('fromNumber', { type: () => Int }) fromNumber: number,
+    @Args('toNumber', { type: () => Int }) toNumber: number,
+  ): Promise<O2dBrandingVersionDiffDTO> {
+    return this.versionDiffService.getVersionDiff(
+      workspace.id,
+      configurationId,
+      fromNumber,
+      toNumber,
+    );
+  }
+
+  @Mutation(() => O2dBrandingConfigurationEntity)
+  async restoreO2dBrandingVersionAsDraft(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthUser() user: UserEntity,
+    @Args('id', { type: () => UUIDScalarType }) id: string,
+    @Args('versionNumber', { type: () => Int }) versionNumber: number,
+  ): Promise<O2dBrandingConfigurationEntity> {
+    return this.publicationService.restoreVersionAsDraft(
+      workspace.id,
+      user.id,
+      id,
+      versionNumber,
+    );
   }
 
   @Mutation(() => O2dBrandingVersionEntity)
