@@ -15,6 +15,7 @@ import { SaveAndCancelButtons } from '@/settings/components/SaveAndCancelButtons
 import { SettingsTextInput } from '@/ui/input/components/SettingsTextInput';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { O2dBrandingDomainsSection } from '@/o2d-branding/components/O2dBrandingDomainsSection';
 import { O2dBrandingVersionHistory } from '@/o2d-branding/components/O2dBrandingVersionHistory';
 import { useO2dBrandingAdmin } from '@/o2d-branding/hooks/useO2dBrandingAdmin';
 import { o2dBrandingArtifactState } from '@/o2d-branding/states/o2dBrandingArtifactState';
@@ -22,6 +23,7 @@ import { applyO2dBrandingStylesheet } from '@/o2d-branding/utils/applyO2dBrandin
 import { getO2dBrandingDraftStatus } from '@/o2d-branding/utils/getO2dBrandingDraftStatus';
 import { getO2dDefaultBrandColor } from '@/o2d-branding/utils/getO2dDefaultBrandColor';
 import {
+  type O2dBrandingAdminDomain,
   type O2dBrandingAdminValidationIssue,
   type O2dBrandingAdminVersion,
   type O2dBrandingDraftStatus,
@@ -111,9 +113,11 @@ export const SettingsO2dBranding = () => {
     configuration,
     configurationsLoading,
     versions,
+    domains,
     validationRun,
     refetchAll,
     refetchAssets,
+    refetchDomains,
     refetchValidationRun,
     startValidationRunPolling,
     stopValidationRunPolling,
@@ -126,6 +130,8 @@ export const SettingsO2dBranding = () => {
     publishConfiguration,
     rollbackConfiguration,
     restoreVersionAsDraft,
+    upsertDomain,
+    removeDomain,
     isBusy,
     isSavingDraft,
     isPreviewLoading,
@@ -448,6 +454,26 @@ export const SettingsO2dBranding = () => {
     }
   };
 
+  const handleUpsertDomain = async (hostname: string) => {
+    try {
+      await upsertDomain({ variables: { hostname } });
+      await refetchDomains();
+      enqueueSuccessSnackBar({ message: t`Domain added` });
+    } catch (error) {
+      enqueueErrorSnackBar({ message: (error as Error).message });
+    }
+  };
+
+  const handleRemoveDomain = async (domain: O2dBrandingAdminDomain) => {
+    try {
+      await removeDomain({ variables: { hostname: domain.hostname } });
+      await refetchDomains();
+      enqueueSuccessSnackBar({ message: t`Domain removed` });
+    } catch (error) {
+      enqueueErrorSnackBar({ message: (error as Error).message });
+    }
+  };
+
   const handleFetchDiff = async (fromNumber: number, toNumber: number) => {
     if (configuration === undefined) {
       return undefined;
@@ -630,6 +656,12 @@ export const SettingsO2dBranding = () => {
                 </StyledIssueList>
               )}
             </Section>
+            <O2dBrandingDomainsSection
+              domains={domains}
+              isBusy={isBusy}
+              onUpsert={handleUpsertDomain}
+              onRemove={handleRemoveDomain}
+            />
             <O2dBrandingVersionHistory
               versions={versions}
               isBusy={isBusy}

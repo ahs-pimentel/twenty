@@ -29,8 +29,10 @@ import { O2dBrandingDraftPreviewDTO } from 'src/engine/core-modules/o2d-branding
 import { O2dBrandingValidationResultDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-validation-result.dto';
 import { O2dBrandingValidationRunDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-validation-run.dto';
 import { O2dBrandingVersionDiffDTO } from 'src/engine/core-modules/o2d-branding/dtos/o2d-branding-version-diff.dto';
+import { O2dBrandingDomainEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-domain.entity';
 import { O2dBrandingAssetService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-asset.service';
 import { O2dBrandingConfigurationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-configuration.service';
+import { O2dBrandingDomainService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-domain.service';
 import { O2dBrandingPreviewService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-preview.service';
 import { O2dBrandingPublicationService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-publication.service';
 import { O2dBrandingValidationRunService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-validation-run.service';
@@ -56,7 +58,43 @@ export class O2dBrandingResolver {
     private readonly validationRunService: O2dBrandingValidationRunService,
     private readonly previewService: O2dBrandingPreviewService,
     private readonly versionDiffService: O2dBrandingVersionDiffService,
+    private readonly domainService: O2dBrandingDomainService,
   ) {}
+
+  // Domain → configuration mapping (doc 12): which branding each host
+  // serves. Routing/DNS stay with the existing custom-domain machinery.
+  @Query(() => [O2dBrandingDomainEntity])
+  async o2dBrandingDomains(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+  ): Promise<O2dBrandingDomainEntity[]> {
+    return this.domainService.listForWorkspace(workspace.id);
+  }
+
+  @Mutation(() => O2dBrandingDomainEntity)
+  async upsertO2dBrandingDomain(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthUser() user: UserEntity,
+    @Args('hostname') hostname: string,
+    @Args('configurationId', {
+      type: () => UUIDScalarType,
+      nullable: true,
+    })
+    configurationId?: string,
+  ): Promise<O2dBrandingDomainEntity> {
+    return this.domainService.upsert(workspace.id, user.id, {
+      hostname,
+      configurationId: configurationId ?? null,
+    });
+  }
+
+  @Mutation(() => Boolean)
+  async removeO2dBrandingDomain(
+    @AuthWorkspace() workspace: WorkspaceEntity,
+    @AuthUser() user: UserEntity,
+    @Args('hostname') hostname: string,
+  ): Promise<boolean> {
+    return this.domainService.remove(workspace.id, user.id, hostname);
+  }
 
   // Canonical hash of the current draft — lets the client derive the doc 15
   // draft state machine (READY_TO_PUBLISH when it matches a completed valid

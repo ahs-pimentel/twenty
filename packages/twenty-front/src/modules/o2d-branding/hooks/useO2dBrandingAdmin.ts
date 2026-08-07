@@ -5,20 +5,24 @@ import {
   CREATE_O2D_BRANDING_CONFIGURATION,
   GET_O2D_BRANDING_ASSETS,
   GET_O2D_BRANDING_CONFIGURATIONS,
+  GET_O2D_BRANDING_DOMAINS,
   GET_O2D_BRANDING_VALIDATION_RUN,
   GET_O2D_BRANDING_VERSION_DIFF,
   GET_O2D_BRANDING_VERSIONS,
   PREVIEW_O2D_BRANDING_DRAFT,
   PUBLISH_O2D_BRANDING_CONFIGURATION,
+  REMOVE_O2D_BRANDING_DOMAIN,
   RESTORE_O2D_BRANDING_VERSION_AS_DRAFT,
   ROLLBACK_O2D_BRANDING_CONFIGURATION,
   START_O2D_BRANDING_DRAFT_VALIDATION,
   UPDATE_O2D_BRANDING_DRAFT,
+  UPSERT_O2D_BRANDING_DOMAIN,
   UPLOAD_O2D_BRANDING_ASSET,
 } from '@/o2d-branding/graphql/o2dBrandingAdminOperations';
 import {
   type O2dBrandingAdminAsset,
   type O2dBrandingAdminConfiguration,
+  type O2dBrandingAdminDomain,
   type O2dBrandingAdminDraftPreview,
   type O2dBrandingAdminValidationRun,
   type O2dBrandingAdminVersion,
@@ -128,14 +132,30 @@ export const useO2dBrandingAdmin = () => {
     restoreO2dBrandingVersionAsDraft: O2dBrandingAdminConfiguration;
   }>(RESTORE_O2D_BRANDING_VERSION_AS_DRAFT, { client: apolloCoreClient });
 
+  // Domains are workspace-level (doc 12) — independent of the selected
+  // configuration, so no skip.
+  const { data: domainsData, refetch: refetchDomains } = useQuery<{
+    o2dBrandingDomains: O2dBrandingAdminDomain[];
+  }>(GET_O2D_BRANDING_DOMAINS, { client: apolloCoreClient });
+
+  const [upsertDomain, { loading: isUpsertingDomain }] = useMutation<{
+    upsertO2dBrandingDomain: O2dBrandingAdminDomain;
+  }>(UPSERT_O2D_BRANDING_DOMAIN, { client: apolloCoreClient });
+
+  const [removeDomain, { loading: isRemovingDomain }] = useMutation<{
+    removeO2dBrandingDomain: boolean;
+  }>(REMOVE_O2D_BRANDING_DOMAIN, { client: apolloCoreClient });
+
   return {
     configuration,
     configurationsLoading,
     versions: versionsData?.o2dBrandingVersions ?? [],
     assets: assetsData?.o2dBrandingAssets ?? [],
+    domains: domainsData?.o2dBrandingDomains ?? [],
     validationRun: validationRunData?.o2dBrandingValidationRun ?? null,
     refetchAll,
     refetchAssets,
+    refetchDomains,
     refetchValidationRun,
     startValidationRunPolling,
     stopValidationRunPolling,
@@ -148,6 +168,8 @@ export const useO2dBrandingAdmin = () => {
     publishConfiguration,
     rollbackConfiguration,
     restoreVersionAsDraft,
+    upsertDomain,
+    removeDomain,
     isBusy:
       isCreating ||
       isSavingDraft ||
@@ -155,7 +177,9 @@ export const useO2dBrandingAdmin = () => {
       isValidating ||
       isPublishing ||
       isRollingBack ||
-      isRestoringAsDraft,
+      isRestoringAsDraft ||
+      isUpsertingDomain ||
+      isRemovingDomain,
     isSavingDraft,
     isUploadingAsset,
     isValidating,

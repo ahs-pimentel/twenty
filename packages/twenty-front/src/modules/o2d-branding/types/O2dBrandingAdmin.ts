@@ -61,6 +61,16 @@ export type O2dBrandingAdminAsset = {
   createdAt: string;
 };
 
+export type O2dBrandingAdminDomain = {
+  id: string;
+  hostname: string;
+  configurationId: string | null;
+  isVerified: boolean;
+  isPrimary: boolean;
+  status: 'ACTIVE' | 'PENDING' | 'DISABLED';
+  createdAt: string;
+};
+
 export type O2dBrandingAdminValidationIssue = {
   rule: string;
   severity: 'error' | 'warning';
