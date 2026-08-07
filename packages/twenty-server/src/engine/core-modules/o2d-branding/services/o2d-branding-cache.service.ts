@@ -19,6 +19,10 @@ export type O2dBrandingValidationRun = {
 
 const PUBLISHED_ARTIFACT_TTL_MS = 24 * 60 * 60 * 1000;
 const VALIDATION_RUN_TTL_MS = 60 * 60 * 1000;
+// Host entries expire fast on purpose: custom-domain activation lives in
+// Enterprise-licensed code we do not patch (doc 24 §5), so a domain change
+// propagates by TTL instead of by listener — 15 minutes bounds the drift.
+const HOST_ARTIFACT_TTL_MS = 15 * 60 * 1000;
 
 // Redis layer of doc 07 §5: `o2d:branding:ws:{workspaceId}` caches the
 // published artifact for 24h and is invalidated on publish/rollback.
@@ -54,6 +58,29 @@ export class O2dBrandingCacheService {
 
   async invalidatePublishedArtifact(workspaceId: string): Promise<void> {
     await this.cacheStorage.del(`o2d:branding:ws:${workspaceId}`);
+  }
+
+  async getHostArtifact(
+    hostname: string,
+  ): Promise<O2dBrandingResolvedArtifact | undefined> {
+    return this.cacheStorage.get<O2dBrandingResolvedArtifact>(
+      `o2d:branding:host:${hostname}`,
+    );
+  }
+
+  async setHostArtifact(
+    hostname: string,
+    artifact: O2dBrandingResolvedArtifact,
+  ): Promise<void> {
+    await this.cacheStorage.set(
+      `o2d:branding:host:${hostname}`,
+      artifact,
+      HOST_ARTIFACT_TTL_MS,
+    );
+  }
+
+  async invalidateHostArtifact(hostname: string): Promise<void> {
+    await this.cacheStorage.del(`o2d:branding:host:${hostname}`);
   }
 
   async getValidationRun(

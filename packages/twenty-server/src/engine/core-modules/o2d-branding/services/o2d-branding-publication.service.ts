@@ -16,6 +16,7 @@ import {
 
 import { O2dBrandingAssetEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-asset.entity';
 import { O2dBrandingConfigurationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-configuration.entity';
+import { O2dBrandingDomainEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-domain.entity';
 import { O2dBrandingPublicationEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-publication.entity';
 import { O2dBrandingVersionEntity } from 'src/engine/core-modules/o2d-branding/entities/o2d-branding-version.entity';
 import {
@@ -224,7 +225,7 @@ export class O2dBrandingPublicationService {
 
     // Invalidation after commit (doc 07 §5) — the next resolution
     // repopulates the Redis entry from the freshly published version.
-    await this.cacheService.invalidatePublishedArtifact(workspaceId);
+    await this.invalidateWorkspaceCaches(workspaceId);
 
     return version;
   }
@@ -336,9 +337,25 @@ export class O2dBrandingPublicationService {
       },
     );
 
-    await this.cacheService.invalidatePublishedArtifact(workspaceId);
+    await this.invalidateWorkspaceCaches(workspaceId);
 
     return restoredVersion;
+  }
+
+  // A publication changes what every host bound to this workspace serves —
+  // the workspace entry and each BrandingDomain host entry are dropped so
+  // the next resolution repopulates them (doc 12 §6 cache row).
+  private async invalidateWorkspaceCaches(workspaceId: string): Promise<void> {
+    await this.cacheService.invalidatePublishedArtifact(workspaceId);
+
+    const domains = await this.dataSource.manager.find(
+      O2dBrandingDomainEntity,
+      { where: { workspaceId } },
+    );
+
+    for (const domain of domains) {
+      await this.cacheService.invalidateHostArtifact(domain.hostname);
+    }
   }
 
   // Escape hatch of doc 15 §4: when a rollback is blocked (adapter drift)

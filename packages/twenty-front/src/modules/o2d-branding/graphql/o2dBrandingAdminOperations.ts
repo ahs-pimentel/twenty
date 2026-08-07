@@ -120,6 +120,43 @@ export const UPLOAD_O2D_BRANDING_ASSET = gql`
   }
 `;
 
+export const GET_O2D_BRANDING_DOMAINS = gql`
+  query GetO2dBrandingDomains {
+    o2dBrandingDomains {
+      id
+      hostname
+      configurationId
+      isVerified
+      isPrimary
+      status
+      createdAt
+    }
+  }
+`;
+
+export const UPSERT_O2D_BRANDING_DOMAIN = gql`
+  mutation UpsertO2dBrandingDomain($hostname: String!, $configurationId: UUID) {
+    upsertO2dBrandingDomain(
+      hostname: $hostname
+      configurationId: $configurationId
+    ) {
+      id
+      hostname
+      configurationId
+      isVerified
+      isPrimary
+      status
+      createdAt
+    }
+  }
+`;
+
+export const REMOVE_O2D_BRANDING_DOMAIN = gql`
+  mutation RemoveO2dBrandingDomain($hostname: String!) {
+    removeO2dBrandingDomain(hostname: $hostname)
+  }
+`;
+
 export const PREVIEW_O2D_BRANDING_DRAFT = gql`
   query PreviewO2dBrandingDraft($configurationId: UUID!) {
     previewO2dBrandingDraft(configurationId: $configurationId) {

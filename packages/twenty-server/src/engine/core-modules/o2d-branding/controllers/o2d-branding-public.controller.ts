@@ -4,7 +4,6 @@ import { type Request, type Response } from 'express';
 
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
-import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { O2dBrandingAssetService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-asset.service';
 import { O2dBrandingDistributionService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-distribution.service';
 import { O2dBrandingResolutionService } from 'src/engine/core-modules/o2d-branding/services/o2d-branding-resolution.service';
@@ -24,7 +23,6 @@ export class O2dBrandingPublicController {
   constructor(
     private readonly resolutionService: O2dBrandingResolutionService,
     private readonly distributionService: O2dBrandingDistributionService,
-    private readonly workspaceDomainsService: WorkspaceDomainsService,
     private readonly assetService: O2dBrandingAssetService,
   ) {}
 
@@ -38,24 +36,19 @@ export class O2dBrandingPublicController {
     let fallback = true;
 
     try {
-      const origin =
+      // Domain-first resolution (doc 12 §3): the Origin (browser) or Host
+      // header names the host whose branding chain applies.
+      const originHeader =
         request.headers.origin ??
         (request.headers.host !== undefined
           ? `https://${request.headers.host}`
           : undefined);
 
-      if (origin !== undefined) {
-        const workspace =
-          await this.workspaceDomainsService.getWorkspaceByOriginOrDefaultWorkspace(
-            origin,
-          );
+      if (originHeader !== undefined) {
+        const hostname = new URL(originHeader).hostname;
 
-        if (workspace !== null && workspace !== undefined) {
-          artifact = await this.resolutionService.resolveByWorkspace(
-            workspace.id,
-          );
-          fallback = false;
-        }
+        artifact = await this.resolutionService.resolveByHostname(hostname);
+        fallback = false;
       }
     } catch {
       fallback = true;

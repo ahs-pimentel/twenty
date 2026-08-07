@@ -23,6 +23,7 @@ describe('O2dBrandingPublicationService', () => {
     findOneBy: jest.fn(),
     findOneByOrFail: jest.fn(),
     findOne: jest.fn(),
+    find: jest.fn(),
     save: jest.fn(),
     update: jest.fn(),
     insert: jest.fn(),
@@ -36,10 +37,14 @@ describe('O2dBrandingPublicationService', () => {
     ),
   };
 
-  const cacheService = { invalidatePublishedArtifact: jest.fn() };
+  const cacheService = {
+    invalidatePublishedArtifact: jest.fn(),
+    invalidateHostArtifact: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    entityManager.find.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -87,10 +92,12 @@ describe('O2dBrandingPublicationService', () => {
     // Source config snapshot enables restore-as-draft (doc 15 §4).
     expect(version.sourceConfig).toEqual(configuration.draftConfig);
     expect(version.artifact?.cssLight['--t-color-blue9']).toBe('#7c3aed');
-    // Redis invalidation happens after the transaction commits (doc 07 §5).
+    // Redis invalidation happens after the transaction commits (doc 07 §5),
+    // covering the workspace entry and every bound branding-domain host.
     expect(cacheService.invalidatePublishedArtifact).toHaveBeenCalledWith(
       'ws-1',
     );
+    expect(entityManager.find).toHaveBeenCalled();
 
     // Pointer swap + audit happen inside the same transaction.
     expect(entityManager.update).toHaveBeenCalledWith(

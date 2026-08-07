@@ -212,6 +212,7 @@ export type Mutation = {
   duplicateWorkflowVersionStep: WorkflowVersionStepChanges;
   generateSignedDpa: GenerateSignedDpaResult;
   publishO2dBrandingConfiguration: O2dBrandingVersion;
+  removeO2dBrandingDomain: Scalars['Boolean']['output'];
   restoreO2dBrandingVersionAsDraft: O2dBrandingConfiguration;
   retryWorkflowRun: WorkflowRun;
   rollbackO2dBrandingConfiguration: O2dBrandingVersion;
@@ -225,6 +226,7 @@ export type Mutation = {
   updateWorkflowVersionPositions: Scalars['Boolean']['output'];
   updateWorkflowVersionStep: WorkflowAction;
   uploadO2dBrandingAsset: O2dBrandingAsset;
+  upsertO2dBrandingDomain: O2dBrandingDomain;
   validateO2dBrandingDraft: O2dBrandingValidationResult;
 };
 
@@ -301,6 +303,11 @@ export type MutationPublishO2dBrandingConfigurationArgs = {
 };
 
 
+export type MutationRemoveO2dBrandingDomainArgs = {
+  hostname: Scalars['String']['input'];
+};
+
+
 export type MutationRestoreO2dBrandingVersionAsDraftArgs = {
   id: Scalars['UUID']['input'];
   versionNumber: Scalars['Int']['input'];
@@ -373,6 +380,12 @@ export type MutationUploadO2dBrandingAssetArgs = {
 };
 
 
+export type MutationUpsertO2dBrandingDomainArgs = {
+  configurationId?: InputMaybe<Scalars['UUID']['input']>;
+  hostname: Scalars['String']['input'];
+};
+
+
 export type MutationValidateO2dBrandingDraftArgs = {
   id: Scalars['UUID']['input'];
 };
@@ -419,6 +432,23 @@ export type O2dBrandingConfiguration = {
 export enum O2dBrandingConfigurationStatus {
   ACTIVE = 'ACTIVE',
   ARCHIVED = 'ARCHIVED'
+}
+
+export type O2dBrandingDomain = {
+  __typename?: 'O2dBrandingDomain';
+  configurationId?: Maybe<Scalars['UUID']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  hostname: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+  isPrimary: Scalars['Boolean']['output'];
+  isVerified: Scalars['Boolean']['output'];
+  status: O2dBrandingDomainStatus;
+};
+
+export enum O2dBrandingDomainStatus {
+  ACTIVE = 'ACTIVE',
+  DISABLED = 'DISABLED',
+  PENDING = 'PENDING'
 }
 
 export type O2dBrandingDraftPreview = {
@@ -511,6 +541,7 @@ export type Query = {
   o2dBrandingAssets: Array<O2dBrandingAsset>;
   o2dBrandingConfiguration: O2dBrandingConfiguration;
   o2dBrandingConfigurations: Array<O2dBrandingConfiguration>;
+  o2dBrandingDomains: Array<O2dBrandingDomain>;
   o2dBrandingValidationRun?: Maybe<O2dBrandingValidationRun>;
   o2dBrandingVersionDiff: O2dBrandingVersionDiff;
   o2dBrandingVersions: Array<O2dBrandingVersion>;

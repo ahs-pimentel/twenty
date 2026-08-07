@@ -50,9 +50,11 @@ const baseAdminState = {
   configurationsLoading: false,
   versions: [],
   assets: [],
+  domains: [],
   validationRun: null,
   refetchAll: jest.fn(),
   refetchAssets: jest.fn(),
+  refetchDomains: jest.fn(),
   refetchValidationRun: jest.fn(),
   startValidationRunPolling: jest.fn(),
   stopValidationRunPolling: jest.fn(),
@@ -65,6 +67,8 @@ const baseAdminState = {
   publishConfiguration: jest.fn(),
   rollbackConfiguration: jest.fn(),
   restoreVersionAsDraft: jest.fn(),
+  upsertDomain: jest.fn(),
+  removeDomain: jest.fn(),
   isBusy: false,
   isSavingDraft: false,
   isUploadingAsset: false,
@@ -161,6 +165,43 @@ describe('SettingsO2dBranding', () => {
     expect(screen.getAllByText('Restore')).toHaveLength(1);
     expect(screen.getAllByText('Edit as draft')).toHaveLength(2);
     expect(screen.getByTestId('save-and-cancel')).toBeInTheDocument();
+  });
+
+  it('adds a branding domain through the domains section', async () => {
+    const upsertDomain = jest.fn().mockResolvedValue({ data: {} });
+
+    mockUseO2dBrandingAdmin.mockReturnValue({
+      ...baseAdminState,
+      configuration: buildConfiguration(),
+      domains: [
+        {
+          id: 'dom-1',
+          hostname: 'crm.cliente.com.br',
+          configurationId: null,
+          isVerified: false,
+          isPrimary: false,
+          status: 'ACTIVE',
+          createdAt: '2026-08-06T00:00:00Z',
+        },
+      ],
+      upsertDomain,
+    });
+
+    render(<SettingsO2dBranding />);
+
+    expect(
+      screen.getByText(/crm\.cliente\.com\.br · ACTIVE/),
+    ).toBeInTheDocument();
+
+    await userEvent.type(
+      screen.getByRole('textbox', { name: /Hostname/ }),
+      'novo.cliente.com.br',
+    );
+    await userEvent.click(screen.getByRole('button', { name: /^Add domain/ }));
+
+    expect(upsertDomain).toHaveBeenCalledWith({
+      variables: { hostname: 'novo.cliente.com.br' },
+    });
   });
 
   it('gates publishing on the derived draft state machine', () => {
